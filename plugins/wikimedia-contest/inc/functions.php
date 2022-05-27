@@ -283,11 +283,3 @@ function register_submission_custom_post_statuses() {
         'label_count'               => _n_noop( 'Finalists <span class="count">(%s)</span>', 'Finalists <span class="count">(%s)</span>' ),
     ) );
 }
-
-function submission_filter_posts_columns( $columns ) {
-	var_dump(1);exit;
-	$columns['image'] = __( 'Image' );
-	$columns['price'] = __( 'Price', 'smashing' );
-	$columns['area'] = __( 'Area', 'smashing' );
-	return $columns;
-  }
