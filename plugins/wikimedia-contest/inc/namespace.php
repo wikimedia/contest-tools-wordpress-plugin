@@ -13,5 +13,4 @@ function bootstrap() {
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_type', 0 );
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0);
-	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\submission_filter_posts_columns' );
 }
