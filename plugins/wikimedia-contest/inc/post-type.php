@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-namespace WikimediaContest;
+namespace WikimediaContest\PostType;
 
 function register_submission_custom_post_type() {
 
@@ -44,6 +44,50 @@ function register_submission_custom_post_type() {
 	register_post_type( 'submission', $args );
 }
 
+function register_submission_custom_post_statuses() {
+
+	// Ineligible submission status
+	register_post_status( 'ineligible', array(
+		'label'                     => _x( 'Ineligible', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Ineligible <span class="count">(%s)</span>', 'Ineligible <span class="count">(%s)</span>' ),
+	) );
+
+	// Eligible submission status
+	register_post_status( 'eligible', array(
+		'label'                     => _x( 'Eligible', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Eligible <span class="count">(%s)</span>', 'Eligible <span class="count">(%s)</span>' ),
+	) );
+
+	// Selected submission status
+	register_post_status( 'selected', array(
+		'label'                     => _x( 'Selected', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Selected <span class="count">(%s)</span>', 'Selected <span class="count">(%s)</span>' ),
+	) );
+
+	// Finalist submission status
+	register_post_status( 'finalist', array(
+		'label'                     => _x( 'Finalist', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Finalists <span class="count">(%s)</span>', 'Finalists <span class="count">(%s)</span>' ),
+	) );
+}
+
+
 function add_submission_box() {
 	add_meta_box(
 		'submission_box',
@@ -53,26 +97,6 @@ function add_submission_box() {
 		'normal',
 		'high'
 	);
-}
-
-// Function to insert custom logic when inserting submissions
-function submission_insert_post( $post_data, $postarr ) {
-
-	if ( $post_data['post_type'] !== 'submission' ) {
-		return $post_data;
-	}
-
-	// If the post is being updated, we don't need to do anything
-	if ( $post_data['post_status'] === 'private' ) { // New post
-
-		// Setting all new submissions to New status
-		$post_data[ 'post_status' ] = 'new';
-
-		// Creating a placeholder code for the submission as the patten is TBD
-		$post_data['post_title'] = sprintf( "Submission %s", md5( $post_data['post_date'] ));
-	}
-
-	return $post_data;
 }
 
 function submission_metabox_html( $post ) {
@@ -87,7 +111,7 @@ function submission_metabox_html( $post ) {
 	$explanation_creation = get_post_meta( $post->ID, 'explanation_creation', true );
 	$explanation_inspiration = get_post_meta( $post->ID, 'explanation_inspiration', true );
 
-	wp_nonce_field( 'random-string', '_mishanonce' );
+	wp_nonce_field( 'save_post_submission', '_submissionnonce' );
 
 	echo '<table class="form-table">
 		<tbody>
@@ -144,7 +168,7 @@ function submission_metabox_html( $post ) {
 function submission_save_meta( $post_id, $post ) {
 
 	// nonce check
-	if ( ! isset( $_POST[ '_mishanonce' ] ) || ! wp_verify_nonce( $_POST[ '_mishanonce' ], 'random-string' ) ) {
+	if ( ! isset( $_POST[ '_submissionnonce' ] ) || ! wp_verify_nonce( $_POST[ '_submissionnonce' ], 'save_post_submission' ) ) {
 		return $post_id;
 	}
 
@@ -231,55 +255,3 @@ function submission_save_meta( $post_id, $post ) {
 	return $post_id;
 }
 
-function register_submission_custom_post_statuses() {
-
-	// New submission status
-    register_post_status( 'new', array(
-        'label'                     => _x( 'New', 'post' ),
-        'public'                    => true,
-        'exclude_from_search'       => false,
-        'show_in_admin_all_list'    => true,
-        'show_in_admin_status_list' => true,
-        'label_count'               => _n_noop( 'New <span class="count">(%s)</span>', 'New <span class="count">(%s)</span>' ),
-    ) );
-
-	// Ineligible submission status
-    register_post_status( 'ineligible', array(
-        'label'                     => _x( 'Ineligible', 'post' ),
-        'public'                    => true,
-        'exclude_from_search'       => false,
-        'show_in_admin_all_list'    => true,
-        'show_in_admin_status_list' => true,
-        'label_count'               => _n_noop( 'Ineligible <span class="count">(%s)</span>', 'Ineligible <span class="count">(%s)</span>' ),
-    ) );
-
-	// Eligible submission status
-    register_post_status( 'eligible', array(
-        'label'                     => _x( 'Eligible', 'post' ),
-        'public'                    => true,
-        'exclude_from_search'       => false,
-        'show_in_admin_all_list'    => true,
-        'show_in_admin_status_list' => true,
-        'label_count'               => _n_noop( 'Eligible <span class="count">(%s)</span>', 'Eligible <span class="count">(%s)</span>' ),
-    ) );
-
-	// Selected submission status
-    register_post_status( 'selected', array(
-        'label'                     => _x( 'Selected', 'post' ),
-        'public'                    => true,
-        'exclude_from_search'       => false,
-        'show_in_admin_all_list'    => true,
-        'show_in_admin_status_list' => true,
-        'label_count'               => _n_noop( 'Selected <span class="count">(%s)</span>', 'Selected <span class="count">(%s)</span>' ),
-    ) );
-
-	// Finalist submission status
-    register_post_status( 'finalist', array(
-        'label'                     => _x( 'Finalist', 'post' ),
-        'public'                    => true,
-        'exclude_from_search'       => false,
-        'show_in_admin_all_list'    => true,
-        'show_in_admin_status_list' => true,
-        'label_count'               => _n_noop( 'Finalists <span class="count">(%s)</span>', 'Finalists <span class="count">(%s)</span>' ),
-    ) );
-}

@@ -12,7 +12,7 @@
 
 namespace WikimediaContest;
 
-require_once __DIR__ . '/inc/functions.php';
+require_once __DIR__ . '/inc/post-type.php';
 require_once __DIR__ . '/inc/namespace.php';
 
 bootstrap();
