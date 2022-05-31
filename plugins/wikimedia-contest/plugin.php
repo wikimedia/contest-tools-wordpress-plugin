@@ -14,5 +14,6 @@ namespace WikimediaContest;
 
 require_once __DIR__ . '/inc/post-type.php';
 require_once __DIR__ . '/inc/namespace.php';
+require_once __DIR__ . '/blocks/audio-submission-form/audio-form.php';
 
 bootstrap();
