@@ -10,10 +10,11 @@
  * @version 1.0.0
  */
 
-namespace WikimediaContest;
+namespace Wikimedia_Contest;
 
 require_once __DIR__ . '/inc/post-type.php';
-require_once __DIR__ . '/inc/namespace.php';
-require_once __DIR__ . '/blocks/audio-submission-form/audio-form.php';
+Post_Type\bootstrap();
 
-bootstrap();
+require_once __DIR__ . '/blocks/audio-submission-form/namespace.php';
+Blocks\Audio_Submission_Form\bootstrap();
+
