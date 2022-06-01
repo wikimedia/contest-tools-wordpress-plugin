@@ -1,0 +1,1 @@
+(()=>{"use strict";(0,wp.blocks.registerBlockType)("wikimedia-content/audio-submission-form")})();
