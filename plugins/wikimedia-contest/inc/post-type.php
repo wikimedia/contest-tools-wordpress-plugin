@@ -207,7 +207,7 @@ function submission_metabox_html( $post ) {
 function submission_save_meta( $post_id, $post ) {
 
 	// Nonce check.
-	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['_submissionnonce'] ), 'save_post_submission' ) ) {
+	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
 		return $post_id;
 	}
 
