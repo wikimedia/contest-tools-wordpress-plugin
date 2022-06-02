@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-namespace Wikimedia_Contest\Blocks\Audio_Submission_Form;
+namespace Wikimedia_Contest\Editor\Blocks\Audio_Submission_Form;
 
 /**
  * Bootstrap post-type related functionality.
@@ -22,7 +22,7 @@ function bootstrap() {
  */
 function register_audio_submission_form() : void {
 	register_block_type(
-		__DIR__,
+		__DIR__ . '/config/audio-submission-form-block.json',
 		[
 			'render_callback' => __NAMESPACE__ . '\\render_block_audio_submission_form',
 		]
