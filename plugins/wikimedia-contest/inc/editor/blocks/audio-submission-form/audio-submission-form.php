@@ -22,7 +22,7 @@ function bootstrap() {
  */
 function register_audio_submission_form() : void {
 	register_block_type(
-		__DIR__ . '/config/audio-submission-form-block.json',
+		__DIR__,
 		[
 			'render_callback' => __NAMESPACE__ . '\\render_block_audio_submission_form',
 		]
