@@ -12,5 +12,8 @@
 
 namespace Wikimedia_Contest;
 
+require_once __DIR__ . '/blocks/audio-submission-form/audio-form.php';
+Custom_Blocks\Audio_Submission_Form\bootstrap();
+
 require_once __DIR__ . '/inc/post-type.php';
 Post_Type\bootstrap();
