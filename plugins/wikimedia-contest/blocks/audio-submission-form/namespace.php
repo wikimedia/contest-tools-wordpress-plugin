@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-namespace Wikimedia_Contest\Editor\Blocks\Audio_Submission_Form;
+namespace Wikimedia_Contest\Blocks\Audio_Submission_Form;
 
 /**
  * Bootstrap post-type related functionality.
