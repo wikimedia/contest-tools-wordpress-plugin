@@ -60,7 +60,7 @@ function register_submission_custom_post_type() {
 }
 
 /**
- * Register custom stati available to the "submission" post type.
+ * Register custom statuses available to the "submission" post type.
  *
  * The initial state for submissions will be "draft".
  *

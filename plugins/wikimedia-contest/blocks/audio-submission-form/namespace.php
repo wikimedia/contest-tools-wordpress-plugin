@@ -16,6 +16,29 @@ function bootstrap() {
 }
 
 /**
+ * Register the audio submission form custom block.
+ *
+ * @return void
+ */
+function register_audio_submission_form() : void {
+	register_block_type(
+		__DIR__,
+		[
+			'render_callback' => __NAMESPACE__ . '\\render_block_audio_submission_form',
+		]
+	);
+}
+
+/**
+ * Reenders the audio submission form custom block.
+ *
+ * @return string
+ */
+function render_block_audio_submission_form() : string {
+	return '<h1>Audio Submission Form</h1>';
+}
+
+/**
  * Include in the array of allowed blocks the custom blocks
  * inserted by the Wikimedia Contest plugin.
  *
@@ -31,23 +54,4 @@ function filter_blocks_wikimedia_contest( $allowed_blocks, \WP_Post $post ) : ar
 	}
 
 	return $allowed_blocks;
-}
-
-/**
- * Register the block type from JSON.
- */
-function register_audio_submission_form() {
-	register_block_type(
-		__DIR__,
-		array(
-			'render_callback' => __NAMESPACE__ . '\\render_block_audio_submission_form',
-		)
-	);
-}
-
-/**
- * Render the block output.
- */
-function render_block_audio_submission_form() {
-	return "<h1>Audio Submission Form</h1>";
 }
