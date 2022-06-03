@@ -16,8 +16,8 @@ function bootstrap() {
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
 	add_action( 'wp_loaded', __NAMESPACE__ . '\\process_submission_form' );
-	add_filter('manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns');
-	add_action('manage_submission_posts_custom_column' , __NAMESPACE__ . '\\custom_submission_column', 10, 2);
+	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
+	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 }
 
 /**
@@ -114,6 +114,7 @@ function register_submission_custom_post_statuses() {
 
 /**
  * Register meta box for viewing/editing submission data.
+ *
  * @return void
  */
 function add_submission_box() : void {
@@ -129,23 +130,28 @@ function add_submission_box() : void {
 
 /**
  * Include Audio column for Submission CPT.
- * @return array $columns Columns to display.
-*/
-function set_custom_edit_submission_columns($columns) : array {
-    $columns['audio_file'] = 'Audio file';
-    return $columns;
+ *
+ * @param array $columns Current columns of submission CPT list.
+ * @return array $columns Updated columns to display.
+ */
+function set_custom_edit_submission_columns( $columns ) : array {
+	$columns['audio_file'] = 'Audio file';
+	return $columns;
 }
 
 /**
  * Customize Audio column for Submission CPT.
+ *
+ * @param string $column_name Column name.
+ * @param int $post_id Post ID.
  * @return void
-*/
-function custom_submission_column($column, $post_id) : void {
-    switch ($column) {
-        case 'audio_file':
-			echo sprintf( '<audio controls><source src="%s"></audio>', get_post_meta( $post_id, 'audio_path', true ) );
-            break;
-    }
+ */
+function custom_submission_column( $column, $post_id ) : void {
+	switch ($column) {
+		case 'audio_file':
+			echo sprintf( '<audio controls><source src="%s"></audio>', esc_html( get_post_meta( $post_id, 'audio_path', true ) ) );
+			break;
+	}
 }
 
 /**
@@ -175,51 +181,51 @@ function submission_metabox_html( $post ) : void {
 
 		<tr>
 			<th><label for="wiki_username">Participant Wikimedia Username</label></th>
-			<td><input type="text" id="wiki_username" name="wiki_username" maxlength="100" value="' . esc_attr($wiki_username) . '"></td>
+			<td><input type="text" id="wiki_username" name="wiki_username" maxlength="100" value="' . esc_attr( $wiki_username ) . '"></td>
 		</tr>
 
 		<tr>
 			<th><label for="legal_name">Participant Legal Name</label></th>
-			<td><input type="text" id="legal_name" name="legal_name" maxlength="100" value="' . esc_attr($legal_name) . '"></td>
+			<td><input type="text" id="legal_name" name="legal_name" maxlength="100" value="' . esc_attr( $legal_name ) . '"></td>
 		</tr>
 
 		<tr>
 			<th><label for="date_birth">Participant Date of Birth</label></th>
-			<td><input type="date" id="date_birth" name="date_birth" value="' . esc_attr($date_birth) . '"></td>
+			<td><input type="date" id="date_birth" name="date_birth" value="' . esc_attr( $date_birth ) . '"></td>
 		</tr>
 
 		<tr>
 			<th><label for="participant_email">Participant Email</label></th>
-			<td><input type="email" id="participant_email" name="participant_email" value="' . esc_attr($participant_email) . '"></td>
+			<td><input type="email" id="participant_email" name="participant_email" value="' . esc_attr( $participant_email ) . '"></td>
 		</tr>
 
 		<tr>
 			<th><label for="phone_number">Participant Phone Number</label></th>
-			<td><input type="tel" id="phone_number" name="phone_number" maxlength="15" value="' . esc_attr($phone_number) . '"></td>
+			<td><input type="tel" id="phone_number" name="phone_number" maxlength="15" value="' . esc_attr( $phone_number ) . '"></td>
 		</tr>
 
 		<tr>
 			<th><label for="audio_path">Audio file</label></th>
 			<td>
 				<audio controls>
-					<source src="' . esc_attr($audio_path) . '">
+					<source src="' . esc_url( $audio_path ) . '">
 				</audio>
 			</td>
 		</tr>
 
 		<tr>
 			<th><label for="authors_contributed">List all of the authors who contributed</label></th>
-			<td><textarea id="authors_contributed" name="authors_contributed" rows="6" cols="100">' . esc_attr($authors_contributed) . '</textarea></td>
+			<td><textarea id="authors_contributed" name="authors_contributed" rows="6" cols="100">' . esc_attr( $authors_contributed ) . '</textarea></td>
 		</tr>
 
 		<tr>
 			<th><label for="explanation_creation">Brief explanation of how the sound was created logo</label></th>
-			<td><textarea id="explanation_creation" name="explanation_creation" rows="6" cols="100">' . esc_attr($explanation_creation) . '</textarea></td>
+			<td><textarea id="explanation_creation" name="explanation_creation" rows="6" cols="100">' . esc_attr( $explanation_creation ) . '</textarea></td>
 		</tr>
 
 		<tr>
 			<th><label for="explanation_inspiration">Brief explanation about meaning and inspiration</label></th>
-			<td><textarea id="explanation_inspiration" name="explanation_inspiration" rows="6" cols="100">' . esc_attr($explanation_inspiration) . '</textarea></td>
+			<td><textarea id="explanation_inspiration" name="explanation_inspiration" rows="6" cols="100">' . esc_attr( $explanation_inspiration ) . '</textarea></td>
 		</tr>
 
 	</tbody>
@@ -233,7 +239,7 @@ function submission_metabox_html( $post ) : void {
  * @param WP_Post $post Post being inserted or updated.
  *
  * @return int Post ID, unchanged.
-*/
+ */
 function submission_save_meta( $post_id, $post ) : int {
 
 	// Nonce check.
@@ -319,40 +325,46 @@ function submission_save_meta( $post_id, $post ) : int {
  * Process submission form, handle uploaded file and save submission
  * to database.
  *
- * @return void
-*/
-function process_submission_form() : void {
-	if ( $_POST['action'] === 'submit_contest_submission' ) {
+ * @return false|void
+ */
+function process_submission_form() {
+
+	// Nonce check.
+	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
+		return false;
+	}
+
+	if ( $_POST['action'] ?? '' === 'submit_contest_submission' ) {
 
 		// Placeholder for submission unique code - TBD
-		$submission_unique_code = md5( microtime(true) );
+		$submission_unique_code = md5( microtime( true ) );
 
 		// File upload
 		$upload_dir = wp_upload_dir()['basedir'];
 		$file_location = $upload_dir . '/' . $submission_unique_code;
 		if ( isset( $_FILES['audio_file'] ) ) {
-		   if ( move_uploaded_file( $_FILES['audio_file']['tmp_name'], $file_location ) ) {
-			$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
-		   }
+			if ( move_uploaded_file( $_FILES['audio_file']['tmp_name'] ?? '', $file_location ) ) {
+				$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
+			}
 		}
 
-		$submission_post = array(
-			'post_title'    => sprintf( "Submission %s", $submission_unique_code),
-			'post_status'   => 'draft',
-			'post_author'   => 1,
-			'post_type'     => 'submission',
-			'meta_input' => [
-				'wiki_username' => sanitize_text_field($_POST['wiki_username']),
-				'legal_name' => sanitize_text_field($_POST['legal_name']),
-				'date_birth' => sanitize_text_field($_POST['date_birth']),
-				'participant_email' => sanitize_email($_POST['participant_email']),
-				'phone_number' => wc_sanitize_phone_number($_POST['phone_number']),
-				'audio_path' => sanitize_text_field($audio_path),
-				'authors_contributed' => sanitize_textarea_field($_POST['authors_contributed']),
-				'explanation_creation' => sanitize_textarea_field($_POST['explanation_creation']),
-				'explanation_inspiration' => sanitize_textarea_field($_POST['explanation_inspiration']),
+		$submission_post = [
+			'post_title'  => sprintf( "Submission %s", $submission_unique_code),
+			'post_status' => 'draft',
+			'post_author' => 1,
+			'post_type'   => 'submission',
+			'meta_input'  => [
+				'wiki_username'           => sanitize_text_field( $_POST['wiki_username'] ),
+				'legal_name'              => sanitize_text_field( $_POST['legal_name'] ),
+				'date_birth'              => sanitize_text_field( $_POST['date_birth'] ),
+				'participant_email'       => sanitize_email( $_POST['participant_email'] ),
+				'phone_number'            => wc_sanitize_phone_number( $_POST['phone_number'] ),
+				'audio_path'              => sanitize_text_field( $audio_path ),
+				'authors_contributed'     => sanitize_textarea_field( $_POST['authors_contributed'] ),
+				'explanation_creation'    => sanitize_textarea_field( $_POST['explanation_creation'] ),
+				'explanation_inspiration' => sanitize_textarea_field( $_POST['explanation_inspiration'] ),
 			],
-		);
+		];
 
 		wp_insert_post( $submission_post );
 	}

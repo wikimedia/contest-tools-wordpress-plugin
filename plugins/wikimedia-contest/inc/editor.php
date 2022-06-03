@@ -17,8 +17,11 @@ function bootstrap() {
 	add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_block_editor_assets' );
 }
 
-
-function enqueue_block_editor_assets() {
+/**
+ * Enqueue block editor assets.
+ * @return void
+ */
+function enqueue_block_editor_assets() : void {
 
 	$manifest = Manifest\get_active_manifest( [
 		dirname( __DIR__ ) . '/build/development-asset-manifest.json',
@@ -43,5 +46,4 @@ function enqueue_block_editor_assets() {
 			'handle' => 'wikimedia_contest_editor',
 		]
 	);
-
 }
