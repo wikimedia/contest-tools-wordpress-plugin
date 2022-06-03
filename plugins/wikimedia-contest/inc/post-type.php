@@ -142,12 +142,12 @@ function set_custom_edit_submission_columns( $columns ) : array {
 /**
  * Customize Audio column for Submission CPT.
  *
- * @param string $column_name Column name.
+ * @param string $column Column name.
  * @param int $post_id Post ID.
  * @return void
  */
 function custom_submission_column( $column, $post_id ) : void {
-	switch ($column) {
+	switch ( $column ) {
 		case 'audio_file':
 			echo sprintf( '<audio controls><source src="%s"></audio>', esc_html( get_post_meta( $post_id, 'audio_path', true ) ) );
 			break;
@@ -334,35 +334,35 @@ function process_submission_form() {
 		return false;
 	}
 
-	if ( $_POST['action'] ?? '' === 'submit_contest_submission' ) {
+	if ( sanitize_text_field( wp_unslash( $_POST['action'] ) ) ?? '' === 'submit_contest_submission' ) {
 
-		// Placeholder for submission unique code - TBD
+		// Placeholder for submission unique code - TBD.
 		$submission_unique_code = md5( microtime( true ) );
 
-		// File upload
+		// File upload.
 		$upload_dir = wp_upload_dir()['basedir'];
 		$file_location = $upload_dir . '/' . $submission_unique_code;
 		if ( isset( $_FILES['audio_file'] ) ) {
-			if ( move_uploaded_file( $_FILES['audio_file']['tmp_name'] ?? '', $file_location ) ) {
+			if ( move_uploaded_file( sanitize_text_field( wp_unslash( $_FILES['audio_file']['tmp_name'] ) ) ?? '', $file_location ) ) {
 				$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
 			}
 		}
 
 		$submission_post = [
-			'post_title'  => sprintf( "Submission %s", $submission_unique_code),
+			'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
 			'post_status' => 'draft',
 			'post_author' => 1,
 			'post_type'   => 'submission',
 			'meta_input'  => [
-				'wiki_username'           => sanitize_text_field( $_POST['wiki_username'] ),
-				'legal_name'              => sanitize_text_field( $_POST['legal_name'] ),
-				'date_birth'              => sanitize_text_field( $_POST['date_birth'] ),
-				'participant_email'       => sanitize_email( $_POST['participant_email'] ),
-				'phone_number'            => wc_sanitize_phone_number( $_POST['phone_number'] ),
-				'audio_path'              => sanitize_text_field( $audio_path ),
-				'authors_contributed'     => sanitize_textarea_field( $_POST['authors_contributed'] ),
-				'explanation_creation'    => sanitize_textarea_field( $_POST['explanation_creation'] ),
-				'explanation_inspiration' => sanitize_textarea_field( $_POST['explanation_inspiration'] ),
+				'wiki_username'           => sanitize_text_field( wp_unslash( $_POST['wiki_username'] ?? '' ) ),
+				'legal_name'              => sanitize_text_field( wp_unslash( $_POST['legal_name'] ?? '' ) ),
+				'date_birth'              => sanitize_text_field( wp_unslash( $_POST['date_birth'] ?? '' ) ),
+				'participant_email'       => sanitize_email( wp_unslash( $_POST['participant_email'] ?? '' ) ),
+				'phone_number'            => wc_sanitize_phone_number( wp_unslash( $_POST['phone_number'] ?? '' ) ),
+				'audio_path'              => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
+				'authors_contributed'     => sanitize_textarea_field( wp_unslash( $_POST['authors_contributed'] ?? '' ) ),
+				'explanation_creation'    => sanitize_textarea_field( wp_unslash( $_POST['explanation_creation'] ?? '' ) ),
+				'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $_POST['explanation_inspiration'] ?? '' ) ),
 			],
 		];
 
@@ -372,6 +372,8 @@ function process_submission_form() {
 
 /**
  * Sanitize phone number.
+ *
+ * @param string $phone_number Input phone number.
  * @return string $phone_number Sanitized phone number.
 */
 function wc_sanitize_phone_number( $phone ) : string {

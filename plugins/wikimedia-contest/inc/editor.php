@@ -19,6 +19,7 @@ function bootstrap() {
 
 /**
  * Enqueue block editor assets.
+ *
  * @return void
  */
 function enqueue_block_editor_assets() : void {
