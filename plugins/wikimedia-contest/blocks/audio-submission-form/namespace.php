@@ -8,11 +8,11 @@
 namespace Wikimedia_Contest\Blocks\Audio_Submission_Form;
 
 /**
- * Bootstrap post-type related functionality.
+ * Bootstrap all block functionality.
  */
 function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_audio_submission_form', 10, 0 );
-	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks_wikimedia_contest', 20, 2 );
+ 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks_wikimedia_contest', 20, 2 );
 }
 
 /**
