@@ -149,7 +149,7 @@ function set_custom_edit_submission_columns( $columns ) : array {
 function custom_submission_column( $column, $post_id ) : void {
 	switch ( $column ) {
 		case 'audio_file':
-			echo sprintf( '<audio controls><source src="%s"></audio>', esc_html( get_post_meta( $post_id, 'audio_path', true ) ) );
+			echo sprintf( '<audio controls><source src="%s"></audio>', esc_attr( get_post_meta( $post_id, 'audio_path', true ) ) );
 			break;
 	}
 }
