@@ -23,7 +23,7 @@ export const settings = {
 	 *
 	 * @returns {React.Component} Block editor render component
 	 */
-	edit: () => {
+	edit: function Edit() {
 		const blockProps = useBlockProps();
 
 		return (
