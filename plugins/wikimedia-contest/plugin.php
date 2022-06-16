@@ -17,3 +17,10 @@ Workflows_Triggers\bootstrap();
 
 require_once __DIR__ . '/inc/post-type.php';
 Post_Type\bootstrap();
+
+require_once __DIR__ . '/inc/editor.php';
+Editor\bootstrap();
+
+require_once __DIR__ . '/blocks/audio-submission-form/namespace.php';
+Blocks\Audio_Submission_Form\bootstrap();
+

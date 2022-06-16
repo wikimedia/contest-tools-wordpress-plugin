@@ -1,0 +1,9 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "wikimedia-contest/audio-submission-form",
+    "title": "Audio Submission Form",
+	"description": "A form for submitting audio submissions to the Wikimedia Contest.",
+    "icon": "playlist-audio",
+    "textdomain": "wikimedia-contest"
+}
