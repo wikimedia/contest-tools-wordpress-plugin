@@ -15,6 +15,9 @@ namespace Wikimedia_Contest;
 require_once __DIR__ . '/inc/workflows-triggers.php';
 Workflows_Triggers\bootstrap();
 
+require_once __DIR__ . '/inc/network-library.php';
+Network_Library\bootstrap();
+
 require_once __DIR__ . '/inc/post-type.php';
 Post_Type\bootstrap();
 
