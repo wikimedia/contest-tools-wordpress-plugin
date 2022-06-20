@@ -2,6 +2,8 @@
 /**
  * Network Library for Submissions
  *
+ * phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions.switch_to_blog_switch_to_blog
+ *
  * @package wikimedia-contest
  */
 
