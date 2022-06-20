@@ -105,7 +105,7 @@ function render_block_audio_submission_form() : string {
  *
  * @return string[]
  */
-function filter_blocks_wikimedia_contest( $allowed_blocks, \WP_Post $post ) : array {
+function filter_blocks_wikimedia_contest( $allowed_blocks, \WP_Post $post ) {
 
 	if ( $post->post_type === 'page' ) {
 		$allowed_blocks[] = 'wikimedia-contest/audio-submission-form';
