@@ -332,9 +332,9 @@ function submission_save_meta( $post_id, $post ) : int {
 function process_submission_form() {
 
 	// Nonce check.
-	//if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
-		//return false;
-	//}
+	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
+		return false;
+	}
 
 	if ( sanitize_text_field( wp_unslash( $_POST['action'] ?? '' ) ) === 'submit_contest_submission' ) {
 
