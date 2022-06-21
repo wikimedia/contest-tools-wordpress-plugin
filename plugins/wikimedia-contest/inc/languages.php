@@ -22,6 +22,7 @@ function bootstrap() {
 function languages_setup() {
 
     // Retrieve the directory for the internationalization files
+    // It needs to be relative path to WP_PLUGIN_DIR where the .mo file resides
     $languages_directory = dirname( plugin_basename( __FILE__ ), 2 ) . '/languages';
 
     // Load the text domain for the language files
