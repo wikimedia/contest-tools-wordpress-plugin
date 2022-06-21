@@ -1,0 +1,112 @@
+# Copyright (C) 2022 Human Made
+# This file is distributed under the same license as the Wikimedia Contest plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Wikimedia Contest 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wikimedia-"
+"contest\n"
+"POT-Creation-Date: 2022-06-21T01:09:09+00:00\n"
+"PO-Revision-Date: 2022-06-21 17:07-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_MX\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1\n"
+"X-Domain: wikimedia-contest\n"
+
+#. Plugin Name of the plugin
+msgid "Wikimedia Contest"
+msgstr "Concurso Wikimedia"
+
+#. Description of the plugin
+msgid "Manage the Wikimedia Contests"
+msgstr "Gestionar los concursos de Wikimedia"
+
+#. Author of the plugin
+msgid "Human Made"
+msgstr "Human Made"
+
+#. Author URI of the plugin
+msgid "https://github.com/humanmade"
+msgstr "https://github.com/humanmade"
+
+#: blocks/audio-submission-form/namespace.php:43
+msgid "Participant Wikimedia Username"
+msgstr "Nombre de usuario de Wikimedia del participante"
+
+#: blocks/audio-submission-form/namespace.php:48
+msgid "Participant Legal Name"
+msgstr "Nombre legal del participante"
+
+#: blocks/audio-submission-form/namespace.php:53
+msgid "Participant Date of Birth"
+msgstr "Fecha de nacimiento del participante"
+
+#: blocks/audio-submission-form/namespace.php:58
+msgid "Participant Email"
+msgstr "Correo electrónico del participante"
+
+#: blocks/audio-submission-form/namespace.php:63
+msgid "Participant Phone Number"
+msgstr "Número de teléfono del participante"
+
+#: blocks/audio-submission-form/namespace.php:68
+msgid "Audio file"
+msgstr "Archivo de audio"
+
+#: blocks/audio-submission-form/namespace.php:73
+msgid "List all of the authors who contributed"
+msgstr "Lista de todos los autores que contribuyeron"
+
+#: blocks/audio-submission-form/namespace.php:78
+msgid "Brief explanation of how the sound was created logo"
+msgstr "Breve explicación de cómo se creó el sonido logo"
+
+#: blocks/audio-submission-form/namespace.php:83
+msgid "Brief explanation about meaning and inspiration"
+msgstr "Breve explicación sobre el significado y la inspiración."
+
+#: inc/post-type.php:31
+msgctxt "Post Type General Name"
+msgid "Submissions"
+msgstr "Envíos"
+
+#: inc/post-type.php:32
+msgctxt "Post Type Singular Name"
+msgid "Submission"
+msgstr "Envío"
+
+#: inc/post-type.php:33 inc/post-type.php:39
+msgid "Submissions"
+msgstr "Envíos"
+
+#: inc/post-type.php:34
+msgid "All Submissions"
+msgstr "Todos los envíos"
+
+#: inc/post-type.php:35
+msgid "View Submission"
+msgstr "Ver envio"
+
+#: inc/post-type.php:40
+msgid "Audio submission from a contest participant"
+msgstr "Envío de audio de un participante del concurso"
+
+#: inc/post-type.php:123
+msgid "Submission Details"
+msgstr "Detalles de envío"
+
+#: blocks/audio-submission-form/block.json
+msgctxt "block title"
+msgid "Audio Submission Form"
+msgstr "Formulario de envío de audio"
+
+#: blocks/audio-submission-form/block.json
+msgctxt "block description"
+msgid "A form for submitting audio submissions to the Wikimedia Contest."
+msgstr ""
+"Un formulario para enviar presentaciones de audio al Concurso de "
+"Wikimedia."
