@@ -105,7 +105,7 @@ function render_block_audio_submission_form() : string {
  * @param bool|string[] $allowed_blocks Array of allowed blocks.
  * @param \WP_Post      $post The post being edited.
  *
- * @return bool| string[]|bool
+ * @return string[]|bool
  */
 function filter_blocks_wikimedia_contest( $allowed_blocks, \WP_Post $post ) {
 
