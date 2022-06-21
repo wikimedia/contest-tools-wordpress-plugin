@@ -8,7 +8,6 @@
 namespace Wikimedia_Contest\Workflows_Triggers;
 
 use HM\Workflows\Event;
-use HM\Workflows\Workflow;
 use Wikimedia_Contest\Network_Library;
 
 /**
@@ -68,7 +67,7 @@ function register_network_events() {
 			'entrant',
 			function ( $post_id ) {
 				return [
-					get_user_by( 'id', get_submission_value( $post_id, 'post_author' ) )
+					get_user_by( 'id', get_submission_value( $post_id, 'post_author' ) ),
 				];
 			},
 			__( 'Sound Logo Creator', 'wikimedia-contest-admin' )

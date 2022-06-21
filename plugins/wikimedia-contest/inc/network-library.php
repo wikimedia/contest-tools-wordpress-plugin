@@ -48,7 +48,7 @@ function insert_submission( $post_data ) {
 /**
  * Get a submission post, potentially translated into the current site's language.
  *
- * @param int $post_id
+ * @param int $post_id ID (on the main site) of submission to fetch.
  * @return WP_Post Post: either source post on main site or it's translation on current site.
  */
 function get_submission( $post_id ) {
@@ -81,8 +81,8 @@ function get_submission( $post_id ) {
  * post was initially created from, in order to send any notifications required
  * in the submitter's chosen language.
  *
- * @param string $old_status Previous status.
  * @param string $new_status New post status.
+ * @param string $old_status Previous status.
  * @param WP_Post $post Post being transitioned.
  */
 function transition_post_status( $new_status, $old_status, $post ) {
