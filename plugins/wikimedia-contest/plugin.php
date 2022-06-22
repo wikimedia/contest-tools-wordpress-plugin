@@ -5,6 +5,8 @@
  * Version:     1.0.0
  * Author:      Human Made
  * Author URI:  https://github.com/humanmade
+ * Text Domain: wikimedia-contest
+ * Domain Path: /languages
  *
  * @package wikimedia-contest
  * @version 1.0.0
@@ -24,3 +26,5 @@ Editor\bootstrap();
 require_once __DIR__ . '/blocks/audio-submission-form/namespace.php';
 Blocks\Audio_Submission_Form\bootstrap();
 
+require_once __DIR__ . '/inc/languages.php';
+Languages\bootstrap();
