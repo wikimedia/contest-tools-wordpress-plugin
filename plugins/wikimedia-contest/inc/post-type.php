@@ -149,7 +149,7 @@ function set_custom_edit_submission_columns( $columns ) : array {
 function custom_submission_column( $column, $post_id ) : void {
 	switch ( $column ) {
 		case 'audio_file':
-			echo sprintf( '<audio controls><source src="%s"></audio>', esc_attr( get_post_meta( $post_id, 'audio_path', true ) ) );
+			echo sprintf( '<audio controls><source src="%s"></audio>', esc_attr( get_post_meta( $post_id, 'audio_file_path', true ) ) );
 			break;
 	}
 }
@@ -169,7 +169,7 @@ function submission_metabox_html( $post ) : void {
 	$date_birth = get_post_meta( $post->ID, 'date_birth', true );
 	$participant_email = get_post_meta( $post->ID, 'participant_email', true );
 	$phone_number = get_post_meta( $post->ID, 'phone_number', true );
-	$audio_path = get_post_meta( $post->ID, 'audio_path', true );
+	$audio_file_path = get_post_meta( $post->ID, 'audio_file_path', true );
 	$authors_contributed = get_post_meta( $post->ID, 'authors_contributed', true );
 	$explanation_creation = get_post_meta( $post->ID, 'explanation_creation', true );
 	$explanation_inspiration = get_post_meta( $post->ID, 'explanation_inspiration', true );
@@ -208,7 +208,7 @@ function submission_metabox_html( $post ) : void {
 			<th><label for="audio_path">Audio file</label></th>
 			<td>
 				<audio controls>
-					<source src="' . esc_url( $audio_path ) . '">
+					<source src="' . esc_url( $audio_file_path ) . '">
 				</audio>
 			</td>
 		</tr>
@@ -359,7 +359,7 @@ function process_submission_form() {
 				'date_birth'              => sanitize_text_field( wp_unslash( $_POST['date_birth'] ?? '' ) ),
 				'participant_email'       => sanitize_email( wp_unslash( $_POST['participant_email'] ?? '' ) ),
 				'phone_number'            => wc_sanitize_phone_number( sanitize_text_field( wp_unslash( $_POST['phone_number'] ?? '' ) ) ),
-				'audio_path'              => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
+				'audio_file_path'         => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
 				'authors_contributed'     => sanitize_textarea_field( wp_unslash( $_POST['authors_contributed'] ?? '' ) ),
 				'explanation_creation'    => sanitize_textarea_field( wp_unslash( $_POST['explanation_creation'] ?? '' ) ),
 				'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $_POST['explanation_inspiration'] ?? '' ) ),
