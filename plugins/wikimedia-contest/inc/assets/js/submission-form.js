@@ -35,13 +35,13 @@ jQuery(document).ready(function($){
 			success: function(response_data) {
 				form.hide();
 				if (response_data.status == 'success') {
-					$('#submission_return_message').html(document.createTextNode(
+					$('#submission_return_message').html(
 						response_data.message
 						+ "<br>"
 						+ response_data.submission_date_message
 						+ "<br>"
 						+ response_data.submission_code_message
-					));
+					);
 				} else {
 					$('#submission_return_message').html(response_data.message);
 				}

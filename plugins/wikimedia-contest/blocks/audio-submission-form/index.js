@@ -23,7 +23,7 @@ export const settings = {
 	 *
 	 * @returns {React.Component} Block editor render component
 	 */
-	Edit: () => {
+	edit: function Edit() {
 		const blockProps = useBlockProps();
 
 		return (
@@ -40,7 +40,7 @@ export const settings = {
 	 *
 	 * @returns {React.Component} Markup to save to post content.
 	 */
-	Save: () => null,
+	save: () => null,
 
 };
 

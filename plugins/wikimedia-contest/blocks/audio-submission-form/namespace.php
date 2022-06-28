@@ -40,7 +40,7 @@ function render_block_audio_submission_form() : string {
 	<table class="form-table">
 		<tbody>
 
-			' . wp_nonce_field( 'save_post_submission', '_submissionnonce' ) . '
+			' . wp_nonce_field( 'save_post_submission', '_submissionnonce', true, false ) . '
 
 			<tr>
 				<th><label for="wiki_username">' . __( 'Participant Wikimedia Username', 'wikimedia-contest' ) . '</label></th>
