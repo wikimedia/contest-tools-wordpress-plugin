@@ -7,6 +7,8 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
+use Wikimedia_Contest\Network_Library;
+
 /**
  * Bootstrap post-type related functionality.
  */
@@ -351,7 +353,7 @@ function process_submission_form() {
 		$submission_post = [
 			'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
 			'post_status' => 'draft',
-			'post_author' => 1,
+			'post_author' => get_current_user_id(),
 			'post_type'   => 'submission',
 			'meta_input'  => [
 				'wiki_username'           => sanitize_text_field( wp_unslash( $_POST['wiki_username'] ?? '' ) ),
@@ -366,7 +368,7 @@ function process_submission_form() {
 			],
 		];
 
-		wp_insert_post( $submission_post );
+		Network_Library\insert_submission( $submission_post );
 	}
 }
 
