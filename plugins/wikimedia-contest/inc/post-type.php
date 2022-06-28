@@ -15,9 +15,10 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0 );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
-	add_action( 'wp_loaded', __NAMESPACE__ . '\\process_submission_form' );
+	add_action( 'rest_api_init', __NAMESPACE__ . '\\register_submission_api_routes' );
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
+	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_submission_form_scripts' );
 }
 
 /**
@@ -322,52 +323,115 @@ function submission_save_meta( $post_id, $post ) : int {
 }
 
 /**
+ * Display success message after submission is saved.
+ */
+function submission_success_message() {
+	echo "success";
+}
+
+/**
+ * Display error message after submission is saved.
+ */
+function submission_error_message() {
+	echo "error";
+}
+
+/**
  * Process submission form, handle uploaded file and save submission
  * to database.
  *
+ * @param WP_REST_Request $request Request object.
+ *
  * @return false|void
  */
-function process_submission_form() {
+function process_submission_form(\WP_REST_Request $request) {
 
 	// Nonce check.
-	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
-		return false;
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash($request->get_param('_submissionnonce') ) ), 'save_post_submission' ) ) {
+		//return rest_ensure_response( __( 'Error processing the submission, please try again. Nonce error.', 'wikimedia-contest' ) );
 	}
 
-	if ( sanitize_text_field( wp_unslash( $_POST['action'] ?? '' ) ) === 'submit_contest_submission' ) {
+	// Placeholder for submission unique code - TBD.
+	$submission_unique_code = md5( microtime( true ) );
 
-		// Placeholder for submission unique code - TBD.
-		$submission_unique_code = md5( microtime( true ) );
+	// File upload.
+	$uploaded_files = $request->get_file_params();
+	$upload_dir = wp_upload_dir()['basedir'];
+	$file_location = $upload_dir . '/' . $submission_unique_code;
 
-		// File upload.
-		$upload_dir = wp_upload_dir()['basedir'];
-		$file_location = $upload_dir . '/' . $submission_unique_code;
-		if ( isset( $_FILES['audio_file'] ) ) {
-			if ( move_uploaded_file( sanitize_text_field( wp_unslash( $_FILES['audio_file']['tmp_name'] ?? '' ) ), $file_location ) ) {
-				$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
-			}
+	if ( isset( $uploaded_files['audio_file'] ) ) {
+		if ( move_uploaded_file( sanitize_text_field( wp_unslash( $uploaded_files['audio_file']['tmp_name'] ?? '' ) ), $file_location ) ) {
+			$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
 		}
-
-		$submission_post = [
-			'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
-			'post_status' => 'draft',
-			'post_author' => 1,
-			'post_type'   => 'submission',
-			'meta_input'  => [
-				'wiki_username'           => sanitize_text_field( wp_unslash( $_POST['wiki_username'] ?? '' ) ),
-				'legal_name'              => sanitize_text_field( wp_unslash( $_POST['legal_name'] ?? '' ) ),
-				'date_birth'              => sanitize_text_field( wp_unslash( $_POST['date_birth'] ?? '' ) ),
-				'participant_email'       => sanitize_email( wp_unslash( $_POST['participant_email'] ?? '' ) ),
-				'phone_number'            => wc_sanitize_phone_number( sanitize_text_field( wp_unslash( $_POST['phone_number'] ?? '' ) ) ),
-				'audio_file_path'         => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
-				'authors_contributed'     => sanitize_textarea_field( wp_unslash( $_POST['authors_contributed'] ?? '' ) ),
-				'explanation_creation'    => sanitize_textarea_field( wp_unslash( $_POST['explanation_creation'] ?? '' ) ),
-				'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $_POST['explanation_inspiration'] ?? '' ) ),
-			],
-		];
-
-		wp_insert_post( $submission_post );
 	}
+
+	$submission_post = [
+		'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
+		'post_status' => 'draft',
+		'post_author' => 1,
+		'post_type'   => 'submission',
+		'meta_input'  => [
+			'wiki_username'           => sanitize_text_field( wp_unslash( $request->get_param('wiki_username') ?? '' ) ),
+			'legal_name'              => sanitize_text_field( wp_unslash( $request->get_param('legal_name') ?? '' ) ),
+			'date_birth'              => sanitize_text_field( wp_unslash( $request->get_param('date_birth') ?? '' ) ),
+			'participant_email'       => sanitize_email( wp_unslash( $request->get_param('participant_email') ?? '' ) ),
+			'phone_number'            => wc_sanitize_phone_number( sanitize_text_field( wp_unslash( $request->get_param('phone_number') ?? '' ) ) ),
+			'audio_file_path'         => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
+			'authors_contributed'     => sanitize_textarea_field( wp_unslash( $request->get_param('authors_contributed') ?? '' ) ),
+			'explanation_creation'    => sanitize_textarea_field( wp_unslash( $request->get_param('explanation_creation') ?? '' ) ),
+			'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $request->get_param('explanation_inspiration') ?? '' ) ),
+		],
+	];
+
+	if ( wp_insert_post( $submission_post ) ) {
+
+		return rest_ensure_response(
+			[
+				'status' => 'success',
+				'message' =>  __( 'Submission saved successfully.', 'wikimedia-contest' ),
+				'submission_unique_code' => $submission_unique_code,
+				'submission_code_message' =>  __( 'Submission unique code: ', 'wikimedia-contest' ),
+			]
+		);
+	} else {
+
+		return rest_ensure_response(
+			[
+				'status' => 'success',
+				'message' =>  __( 'Error processing the submission. Post insert error.', 'wikimedia-contest' ),
+			]
+		);
+	}
+}
+
+/**
+ * Register REST API route to create a submission.
+ *
+ * @return void
+ */
+function register_submission_api_routes() {
+	register_rest_route(
+		'wikimedia-contest/v1',
+		'submission',
+		[
+			'methods'             => \WP_REST_Server::EDITABLE,
+			'callback'            => __NAMESPACE__ . '\\process_submission_form',
+			'permission_callback' => '__return_true',
+		]
+	);
+}
+
+/**
+ * Enqueue ajax scripts for submission form.
+ *
+ * @return void
+ */
+function enqueue_submission_form_scripts() {
+	wp_enqueue_script( 'submission-form', plugins_url( 'assets/js/submission-form.js', __FILE__ ), [ 'jquery' ], '1.0.0', true );
+	wp_localize_script( 'submission-form', 'submission_form_ajax_object', [
+		'ajax_url' => admin_url( 'admin-ajax.php' ),
+		'security' => wp_create_nonce( 'file_upload' ),
+	] );
 }
 
 /**
