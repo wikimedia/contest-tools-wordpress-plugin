@@ -7,6 +7,8 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
+use Wikimedia_Contest\Network_Library;
+
 /**
  * Bootstrap post-type related functionality.
  */
@@ -326,13 +328,18 @@ function submission_save_meta( $post_id, $post ) : int {
  * Display success message after submission is saved.
  *
  * @param int $post_id Post ID of submission being saved.
- *
+ * @param int $main_blog_id ID of main blog where the submission were inserted.
+  *
  * @return array Message including submission information.
  */
-function submission_success_message( int $post_id ) : array {
+function submission_success_message( int $main_blog_id, int $post_id ) : array {
+
+	// Switch to the main site to retreive the submission post data.
+	switch_to_blog( $main_blog_id );
 	$submission_post = get_post( $post_id );
 	$submission_date = $submission_post->post_date;
 	$submission_code = get_post_meta( $post_id, 'unique_code', true );
+	restore_current_blog();
 
 	return [
 		'status'                  => 'success',
@@ -403,11 +410,11 @@ function process_submission_form( \WP_REST_Request $request ) {
 		],
 	];
 
-	$post_id = wp_insert_post( $submission_post );
-	if ( $post_id ) {
-		return rest_ensure_response( submission_success_message( $post_id ) );
-	} else {
+	$post_data = Network_Library\insert_submission( $submission_post );
+	if ( empty( $post_data ) ) {
 		return rest_ensure_response( submission_error_message() );
+	} else {
+		return rest_ensure_response( submission_success_message( $post_data['blog_id'], $post_data['post_id'] ) );
 	}
 }
 
