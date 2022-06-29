@@ -23,7 +23,7 @@ jQuery(document).ready(function($){
 		file_data = form.prop('audio_file')['files'][0];
 		form_data.append('audio_file', file_data);
 
-		var url = '/wp-json/wikimedia-contest/v1/submission/';
+		var url = submission_form_ajax_object.api_url;
 		var method = form.attr('method');
 
 		$.ajax({

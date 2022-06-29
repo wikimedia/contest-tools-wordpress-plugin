@@ -21,6 +21,9 @@ function bootstrap() {
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_submission_form_scripts' );
+
+	define( 'SUBMISSION_API_NAMESPACE', 'wikimedia-contest/v1' );
+	define( 'SUBMISSION_API_ROUTE', 'submission' );
 }
 
 /**
@@ -425,8 +428,8 @@ function process_submission_form( \WP_REST_Request $request ) {
  */
 function register_submission_api_routes() {
 	register_rest_route(
-		'wikimedia-contest/v1',
-		'submission',
+		SUBMISSION_API_NAMESPACE,
+		SUBMISSION_API_ROUTE,
 		[
 			'methods'             => \WP_REST_Server::EDITABLE,
 			'callback'            => __NAMESPACE__ . '\\process_submission_form',
@@ -445,6 +448,7 @@ function enqueue_submission_form_scripts() {
 	wp_localize_script( 'submission-form', 'submission_form_ajax_object', [
 		'ajax_url' => admin_url( 'admin-ajax.php' ),
 		'security' => wp_create_nonce( 'file_upload' ),
+		'api_url'  => get_rest_url() . SUBMISSION_API_NAMESPACE . '/' . SUBMISSION_API_ROUTE,
 	] );
 }
 
