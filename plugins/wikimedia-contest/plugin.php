@@ -14,6 +14,8 @@
 
 namespace Wikimedia_Contest;
 
+require_once __DIR__ . '/inc/functions.php';
+
 require_once __DIR__ . '/inc/workflows-triggers.php';
 Workflows_Triggers\bootstrap();
 
@@ -31,3 +33,6 @@ Blocks\Audio_Submission_Form\bootstrap();
 
 require_once __DIR__ . '/inc/languages.php';
 Languages\bootstrap();
+
+require_once __DIR__ . '/inc/rest-api.php';
+Rest_Api\bootstrap();
