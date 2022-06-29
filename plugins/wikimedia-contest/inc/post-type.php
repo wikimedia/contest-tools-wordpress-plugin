@@ -330,9 +330,9 @@ function submission_save_meta( $post_id, $post ) : int {
 /**
  * Display success message after submission is saved.
  *
- * @param int $post_id Post ID of submission being saved.
  * @param int $main_blog_id ID of main blog where the submission were inserted.
-  *
+ * @param int $post_id Post ID of submission being saved.
+ *
  * @return array Message including submission information.
  */
 function submission_success_message( int $main_blog_id, int $post_id ) : array {
@@ -374,10 +374,16 @@ function submission_error_message() {
  */
 function process_submission_form( \WP_REST_Request $request ) {
 
-	// Nonce check.
-	// TODO: not working for logged users.
+	// Submission nonce check.
+	// TODO: fix sending user authentication thorugh the API.
 	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_submissionnonce' ) ) ), 'save_post_submission' ) ) {
-		return rest_ensure_response( __( 'Error processing the submission, please try again. Nonce error.', 'wikimedia-contest' ) );
+		return rest_ensure_response( __( 'Error processing the submission, please try again. Submission nonce error.', 'wikimedia-contest' ) );
+	}
+
+	// File upload nonce check.
+	// TODO: fix sending user authentication thorugh the API.
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_filesuploadnonce' ) ) ), 'files_upload' ) ) {
+		return rest_ensure_response( __( 'Error processing the submission, please try again. File upload nonce error.', 'wikimedia-contest' ) );
 	}
 
 	// Placeholder for submission unique code - TBD.
@@ -447,7 +453,7 @@ function enqueue_submission_form_scripts() {
 	wp_enqueue_script( 'submission-form', plugins_url( 'assets/js/submission-form.js', __FILE__ ), [ 'jquery' ], '1.0.0', true );
 	wp_localize_script( 'submission-form', 'submission_form_ajax_object', [
 		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'security' => wp_create_nonce( 'file_upload' ),
+		'files_upload_nonce' => wp_create_nonce( 'files_upload' ),
 		'api_url'  => get_rest_url() . SUBMISSION_API_NAMESPACE . '/' . SUBMISSION_API_ROUTE,
 	] );
 }
