@@ -5,7 +5,7 @@
 
 namespace Wikimedia_Contest;
 
- /**
+/**
  * Sanitize phone number.
  *
  * @param string $phone Input phone number.

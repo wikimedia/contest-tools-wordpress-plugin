@@ -7,10 +7,10 @@
 
 namespace Wikimedia_Contest\Rest_Api;
 
-use Wikimedia_Contest\Network_Library;
 use function Wikimedia_Contest\wc_sanitize_phone_number;
+use Wikimedia_Contest\Network_Library;
 
-// REST API constants
+// REST API constants.
 const SUBMISSION_API_NAMESPACE = 'wikimedia-contest/v1';
 const SUBMISSION_API_ROUTE = 'submission';
 
