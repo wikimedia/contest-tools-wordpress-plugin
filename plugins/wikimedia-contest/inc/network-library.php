@@ -38,6 +38,10 @@ function insert_submission( $post_data ) {
 	$post_id = wp_insert_post( $post_data );
 	restore_current_blog();
 
+	if ( ! $post_id ) {
+		return [];
+	}
+
 	// Return information about the post created.
 	return [
 		'blog_id' => $main_site_id,

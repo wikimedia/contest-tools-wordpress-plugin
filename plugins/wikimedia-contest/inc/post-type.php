@@ -7,8 +7,6 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
-use Wikimedia_Contest\Network_Library;
-
 /**
  * Bootstrap post-type related functionality.
  */
@@ -17,7 +15,6 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0 );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
-	add_action( 'wp_loaded', __NAMESPACE__ . '\\process_submission_form' );
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 }
@@ -323,61 +320,3 @@ function submission_save_meta( $post_id, $post ) : int {
 	return $post_id;
 }
 
-/**
- * Process submission form, handle uploaded file and save submission
- * to database.
- *
- * @return false|void
- */
-function process_submission_form() {
-
-	// Nonce check.
-	if ( ! isset( $_POST['_submissionnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_submissionnonce'] ) ), 'save_post_submission' ) ) {
-		return false;
-	}
-
-	if ( sanitize_text_field( wp_unslash( $_POST['action'] ?? '' ) ) === 'submit_contest_submission' ) {
-
-		// Placeholder for submission unique code - TBD.
-		$submission_unique_code = md5( microtime( true ) );
-
-		// File upload.
-		$upload_dir = wp_upload_dir()['basedir'];
-		$file_location = $upload_dir . '/' . $submission_unique_code;
-		if ( isset( $_FILES['audio_file'] ) ) {
-			if ( move_uploaded_file( sanitize_text_field( wp_unslash( $_FILES['audio_file']['tmp_name'] ?? '' ) ), $file_location ) ) {
-				$audio_path = wp_upload_dir()['baseurl'] . '/' . $submission_unique_code;
-			}
-		}
-
-		$submission_post = [
-			'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
-			'post_status' => 'draft',
-			'post_author' => get_current_user_id(),
-			'post_type'   => 'submission',
-			'meta_input'  => [
-				'wiki_username'           => sanitize_text_field( wp_unslash( $_POST['wiki_username'] ?? '' ) ),
-				'legal_name'              => sanitize_text_field( wp_unslash( $_POST['legal_name'] ?? '' ) ),
-				'date_birth'              => sanitize_text_field( wp_unslash( $_POST['date_birth'] ?? '' ) ),
-				'participant_email'       => sanitize_email( wp_unslash( $_POST['participant_email'] ?? '' ) ),
-				'phone_number'            => wc_sanitize_phone_number( sanitize_text_field( wp_unslash( $_POST['phone_number'] ?? '' ) ) ),
-				'audio_file_path'         => sanitize_text_field( wp_unslash( $audio_path ?? '' ) ),
-				'authors_contributed'     => sanitize_textarea_field( wp_unslash( $_POST['authors_contributed'] ?? '' ) ),
-				'explanation_creation'    => sanitize_textarea_field( wp_unslash( $_POST['explanation_creation'] ?? '' ) ),
-				'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $_POST['explanation_inspiration'] ?? '' ) ),
-			],
-		];
-
-		Network_Library\insert_submission( $submission_post );
-	}
-}
-
-/**
- * Sanitize phone number.
- *
- * @param string $phone Input phone number.
- * @return string Sanitized phone number.
- */
-function wc_sanitize_phone_number( $phone ) : string {
-	return preg_replace( '/[^\d+]/', '', $phone );
-}
