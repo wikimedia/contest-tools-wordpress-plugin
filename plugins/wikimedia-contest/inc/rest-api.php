@@ -54,7 +54,7 @@ function submission_success_message( int $main_blog_id, int $post_id ) : array {
  */
 function submission_error_message() {
 	return [
-		'status'  => 'success',
+		'status'  => 'error',
 		'message' => __( 'Error processing the submission. Submission insert error.', 'wikimedia-contest' ),
 	];
 }
