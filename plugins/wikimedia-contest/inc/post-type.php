@@ -183,7 +183,7 @@ function custom_submission_column( $column, $post_id ) : void {
 					<button
 						name="' . esc_attr( $status ) . '"
 						value="' . esc_attr( $post_id ) . '"
-						class="' . esc_attr( $parameters['class'] . $selected_class ) . '">' . esc_attr( $parameters['label'] ) . '</button>&nbsp;';
+						class="' . esc_attr( $parameters['class'] . $selected_class ) . '">' . esc_html( $parameters['label'] ) . '</button>&nbsp;';
 			}
 
 			break;
