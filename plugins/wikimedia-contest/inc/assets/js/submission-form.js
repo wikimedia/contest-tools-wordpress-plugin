@@ -20,8 +20,8 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 		let submission_nonce = form.prop( '_submissionnonce' ).value;
 		form_data.append( '_submissionnonce', submission_nonce );
 
-		// let files_upload_nonce = submission_form_ajax_object.files_upload_nonce; //eslint-disable-line no-undef
-		// form_data.append( '_filesuploadnonce', files_upload_nonce );
+		let files_upload_nonce = submission_form_ajax_object.files_upload_nonce; //eslint-disable-line no-undef
+		form_data.append( '_filesuploadnonce', files_upload_nonce );
 
 		// audio file - unprocessed field
 		let file_data = form.prop( 'audio_file' )['files'][0];
@@ -36,14 +36,14 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 			data: form_data,
 			contentType: false,
 			processData: false,
+			withCredentials: true,
 			/**
 			 * Send the proper X-WP-Nonce header information along with the request
 			 *
-			 * @param {jQuery XMLHttpRequest} jqXhr jQuery XMLHttpRequest
+			 * @param {XMLHttpRequest} jqXhr jQuery XMLHttpRequest
 			 */
 			beforeSend: function ( jqXhr ) {
-				jqXhr.setRequestHeader('X-WP-Nonce', submission_nonce);
-				//jqXhr.setRequestHeader('X-WP-Nonce', files_upload_nonce);
+				jqXhr.setRequestHeader( 'X-WP-Nonce', submission_nonce );
 			},
 			/**
 			 * Parses the response from the server and displays the success or error message.

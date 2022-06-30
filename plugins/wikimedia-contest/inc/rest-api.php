@@ -69,18 +69,12 @@ function submission_error_message() {
  */
 function process_submission_form( \WP_REST_Request $request ) {
 
-	// Workaround for nonce check on REST API
-	// wp_set_current_user( null );
-	//var_dump( $request, $request->get_param( '_submissionnonce' ));
-
 	// Submission nonce check.
-	// TODO: fix sending user authentication thorugh the API.
-	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_submissionnonce' ) ) ), 'save_post_submission' ) ) {
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_submissionnonce' ) ) ), 'wp_rest' ) ) {
 		return rest_ensure_response( __( 'Error processing the submission, please try again. Submission nonce error.', 'wikimedia-contest' ) );
 	}
 
 	// File upload nonce check.
-	// TODO: fix sending user authentication thorugh the API.
 	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_filesuploadnonce' ) ) ), 'files_upload' ) ) {
 		return rest_ensure_response( __( 'Error processing the submission, please try again. File upload nonce error.', 'wikimedia-contest' ) );
 	}
@@ -150,17 +144,9 @@ function register_submission_api_routes() {
  */
 function enqueue_submission_form_scripts() {
 	wp_enqueue_script( 'submission-form', plugins_url( 'assets/js/submission-form.js', __FILE__ ), [ 'jquery' ], '1.0.0', true );
-
-	// Workaround for nonce check on REST API
-	// $uid = (int) get_current_user_id();
-	// wp_set_current_user( null );
-	// $files_upload_nonce = wp_create_nonce( 'files_upload' );
-
 	wp_localize_script( 'submission-form', 'submission_form_ajax_object', [
 		'ajax_url' => admin_url( 'admin-ajax.php' ),
-		'files_upload_nonce' => $files_upload_nonce,
+		'files_upload_nonce' => wp_create_nonce( 'files_upload' ),
 		'api_url'  => get_rest_url() . SUBMISSION_API_NAMESPACE . '/' . SUBMISSION_API_ROUTE,
 	] );
-
-	// wp_set_current_user( $uid );
 }
