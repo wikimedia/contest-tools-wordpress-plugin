@@ -35,12 +35,13 @@ function register_audio_submission_form() : void {
  * @return string
  */
 function render_block_audio_submission_form() : string {
+
 	return '<div id="submission_return_message"></div>
 	<form method="post" id="submission-form" enctype="multipart/form-data">
 	<table class="form-table">
 		<tbody>
 
-			' . wp_nonce_field( 'save_post_submission', '_submissionnonce', true, false ) . '
+			' . wp_nonce_field( 'wp_rest', '_submissionnonce', true, false ) . '
 
 			<tr>
 				<th><label for="wiki_username">' . __( 'Participant Wikimedia Username', 'wikimedia-contest' ) . '</label></th>

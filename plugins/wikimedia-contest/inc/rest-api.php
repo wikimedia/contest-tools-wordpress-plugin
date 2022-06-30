@@ -70,13 +70,11 @@ function submission_error_message() {
 function process_submission_form( \WP_REST_Request $request ) {
 
 	// Submission nonce check.
-	// TODO: fix sending user authentication thorugh the API.
-	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_submissionnonce' ) ) ), 'save_post_submission' ) ) {
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_submissionnonce' ) ) ), 'wp_rest' ) ) {
 		return rest_ensure_response( __( 'Error processing the submission, please try again. Submission nonce error.', 'wikimedia-contest' ) );
 	}
 
 	// File upload nonce check.
-	// TODO: fix sending user authentication thorugh the API.
 	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $request->get_param( '_filesuploadnonce' ) ) ), 'files_upload' ) ) {
 		return rest_ensure_response( __( 'Error processing the submission, please try again. File upload nonce error.', 'wikimedia-contest' ) );
 	}
