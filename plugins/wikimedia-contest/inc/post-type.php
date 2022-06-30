@@ -135,7 +135,13 @@ function add_submission_box() : void {
  */
 function set_custom_edit_submission_columns( $columns ) : array {
 	$columns['audio_file'] = 'Audio file';
-	$columns['status_change'] = 'Review submission';
+
+	// Including column "Review submission" only if it's on the main site of the network.
+	$site_id = get_current_blog_id();
+	if ( is_main_site( $site_id ) ) {
+		$columns['status_change'] = 'Review submission';
+	}
+
 	return $columns;
 }
 
