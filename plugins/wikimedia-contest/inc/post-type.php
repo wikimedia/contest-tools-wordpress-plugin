@@ -181,6 +181,7 @@ function custom_submission_column( $column, $post_id ) : void {
 				$selected_class = ( $post_status === $status ) ? ' button-primary' : '';
 				echo '
 					<button
+						type="button"
 						name="' . esc_attr( $status ) . '"
 						value="' . esc_attr( $post_id ) . '"
 						class="' . esc_attr( $parameters['class'] . $selected_class ) . '">' . esc_html( $parameters['label'] ) . '</button>&nbsp;';

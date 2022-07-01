@@ -35,6 +35,12 @@ function enqueue_admin_cpt_status_change_scripts() : void {
  */
 function update_submission_status() : void {
 
+	// Theoretically shouldn't be possible to reach this on other sites, but just in case.
+	$site_id = get_current_blog_id();
+	if ( ! is_main_site( $site_id ) ) {
+		return;
+	}
+
 	// Nonce check.
 	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_status_change_nonce'] ?? '' ) ), 'status-change-nonce' ) ) {
 		wp_send_json_error( [
@@ -55,7 +61,13 @@ function update_submission_status() : void {
 		] );
 	}
 
-	if ( ! empty( $_POST['new_post_status'] ) ) {
+	$allowed_status = [
+		'draft',
+		'eligible',
+		'ineligible',
+	];
+
+	if ( ! empty( $_POST['new_post_status'] ) && in_array( sanitize_text_field( wp_unslash( $_POST['new_post_status'] ) ), $allowed_status, true ) ) {
 		$new_post_status = sanitize_text_field( wp_unslash( $_POST['new_post_status'] ) );
 
 		$submission_post->post_status = $new_post_status;
