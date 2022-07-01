@@ -1,6 +1,7 @@
 jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 	$( '#submission-form' ).on( 'submit', function ( e ) {
-
+		e.preventDefault();
+		
 		let form = $( this );
 		let form_data = new FormData();
 
