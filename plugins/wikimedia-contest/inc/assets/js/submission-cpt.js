@@ -1,7 +1,5 @@
 jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 	$( '.submission-status-change-button' ).on( 'click', function ( e ) {
-		e.preventDefault();
-
 		let button = $( this );
 		let post_id = button.prop( 'value' );
 		let new_post_status = button.prop( 'name' );
