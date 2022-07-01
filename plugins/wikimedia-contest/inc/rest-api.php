@@ -28,9 +28,9 @@ function bootstrap() {
  * @param int $main_blog_id ID of main blog where the submission were inserted.
  * @param int $post_id Post ID of submission being saved.
  *
- * @return array Message including submission information.
+ * @return void
  */
-function submission_success_message( int $main_blog_id, int $post_id ) : array {
+function submission_success_message( int $main_blog_id, int $post_id ) : void {
 
 	// Switch to the main site to retreive the submission post data.
 	switch_to_blog( $main_blog_id );
@@ -51,9 +51,9 @@ function submission_success_message( int $main_blog_id, int $post_id ) : array {
 /**
  * Build an error message regarding to the submission parsing.
  *
- * @return array Error message information.
+ * @return void
  */
-function submission_error_message() {
+function submission_error_message() : void {
 	wp_send_json_error( [
 		'message' => __( 'Error processing the submission. Submission insert error.', 'wikimedia-contest' ),
 	] );
@@ -104,7 +104,7 @@ function process_submission_form( \WP_REST_Request $request ) {
 	}
 
 	if ( count( $field_missing_error_messages ) > 0 ) {
-		$error_message =  '<h1>' . __( 'Error processing the submission.', 'wikimedia-contest' ) . '</h1>';
+		$error_message = '<h1>' . __( 'Error processing the submission.', 'wikimedia-contest' ) . '</h1>';
 		$error_message .= implode( '<br>', $field_missing_error_messages );
 
 		wp_send_json_error( [
