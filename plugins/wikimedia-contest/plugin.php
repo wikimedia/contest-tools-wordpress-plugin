@@ -36,3 +36,6 @@ Languages\bootstrap();
 
 require_once __DIR__ . '/inc/rest-api.php';
 Rest_Api\bootstrap();
+
+require_once __DIR__ . '/inc/admin-ajax.php';
+Admin_Ajax\bootstrap();
