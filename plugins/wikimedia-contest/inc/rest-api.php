@@ -39,12 +39,13 @@ function submission_success_message( int $main_blog_id, int $post_id ) : array {
 	$submission_code = get_post_meta( $post_id, 'unique_code', true );
 	restore_current_blog();
 
-	return [
-		'status'                  => 'success',
-		'message'                 => __( 'Submission saved successfully.', 'wikimedia-contest' ),
-		'submission_date_message' => sprintf( __( 'Submission date: %s', 'wikimedia-contest' ), $submission_date ),
-		'submission_code_message' => sprintf( __( 'Submission unique code: %s', 'wikimedia-contest' ), $submission_code ),
-	];
+	$success_message = '<h1>' . __( 'Submission saved successfully.', 'wikimedia-contest' ) . '</h1>';
+	$success_message .= '<br>' . sprintf( __( 'Submission date: <b>%s</b>', 'wikimedia-contest' ), $submission_date );
+	$success_message .= '<br>' . sprintf( __( 'Submission unique code: <b>%s</b>', 'wikimedia-contest' ), $submission_code );
+
+	wp_send_json_success( [
+		'message' => $success_message,
+	] );
 }
 
 /**
@@ -53,10 +54,9 @@ function submission_success_message( int $main_blog_id, int $post_id ) : array {
  * @return array Error message information.
  */
 function submission_error_message() {
-	return [
-		'status'  => 'error',
+	wp_send_json_error( [
 		'message' => __( 'Error processing the submission. Submission insert error.', 'wikimedia-contest' ),
-	];
+	] );
 }
 
 /**
@@ -79,11 +79,43 @@ function process_submission_form( \WP_REST_Request $request ) {
 		return rest_ensure_response( __( 'Error processing the submission, please try again. File upload nonce error.', 'wikimedia-contest' ) );
 	}
 
+	// Regular fields validation.
+	$submission_fields = [
+		'wiki_username',
+		'legal_name',
+		'date_birth',
+		'participant_email',
+		'phone_number',
+		'authors_contributed',
+		'explanation_creation',
+		'explanation_inspiration',
+	];
+	$field_missing_error_messages = [];
+	foreach ( $submission_fields as $field ) {
+		if ( ! $request->get_param( $field ) ) {
+			$field_missing_error_messages[] = sprintf( __( 'Missing the field <b>%s</b>.', 'wikimedia-contest' ), $field );
+		}
+	}
+
+	// Audio files field validation.
+	$uploaded_files = $request->get_file_params();
+	if ( ! isset( $uploaded_files['audio_file'] ) ) {
+		$field_missing_error_messages[] = __( 'Missing at least one <b>audio file</b>', 'wikimedia-contest' );
+	}
+
+	if ( count( $field_missing_error_messages ) > 0 ) {
+		$error_message =  '<h1>' . __( 'Error processing the submission.', 'wikimedia-contest' ) . '</h1>';
+		$error_message .= implode( '<br>', $field_missing_error_messages );
+
+		wp_send_json_error( [
+			'message' => $error_message,
+		] );
+	}
+
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );
 
-	// File upload.
-	$uploaded_files = $request->get_file_params();
+	// File upload handling.
 	$upload_dir = wp_upload_dir()['basedir'];
 	$file_location = $upload_dir . '/' . $submission_unique_code;
 
