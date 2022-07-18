@@ -35,7 +35,9 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 			data: form_data,
 			contentType: false,
 			processData: false,
-			withCredentials: true,
+			xhrFields: {
+				withCredentials: true,
+			},
 			/**
 			 * Send the proper X-WP-Nonce header information along with the request
 			 *
