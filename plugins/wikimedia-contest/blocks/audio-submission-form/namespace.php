@@ -36,8 +36,7 @@ function register_audio_submission_form() : void {
  */
 function render_block_audio_submission_form() : string {
 
-	return '<div id="submission_return_message"></div>
-	<form method="post" id="submission-form" enctype="multipart/form-data">
+	return '<form method="post" id="submission-form" enctype="multipart/form-data">
 	<table class="form-table">
 		<tbody>
 
@@ -97,7 +96,8 @@ function render_block_audio_submission_form() : string {
 
 		</tbody>
 	</table>
-	</form>';
+	</form>
+	<div id="submission_return_message"></div>';
 }
 
 /**

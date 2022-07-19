@@ -24,7 +24,9 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 
 		// audio file - unprocessed field
 		let file_data = form.prop( 'audio_file' )['files'][0];
-		form_data.append( 'audio_file', file_data );
+		if ( file_data ) {
+			form_data.append( 'audio_file', file_data );
+		}
 
 		let url = submission_form_ajax_object.api_url; //eslint-disable-line no-undef
 		let method = form.attr( 'method' );
@@ -53,18 +55,10 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 			 * @returns {void}
 			 */
 			 success: function ( response_data ) {
-				form.hide();
-				if ( response_data.status === 'success' ) {
-					$( '#submission_return_message' ).html(
-						response_data.message
-						+ '<br>'
-						+ response_data.submission_date_message
-						+ '<br>'
-						+ response_data.submission_code_message
-					 );
-				} else {
-					$( '#submission_return_message' ).html( response_data.message );
+				if ( response_data.success ) {
+					form.hide();
 				}
+				$( '#submission_return_message' ).html( response_data.data.message );
 			},
 		} );
 	} );
