@@ -11,7 +11,7 @@ namespace Wikimedia_Contest\Gravity_Forms;
  * Bootstrap form functionality.
  */
 function bootstrap() {
-	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks
+	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 }
 
 /**
@@ -28,6 +28,5 @@ function filter_blocks( $allowed_blocks, \WP_Post $post ) {
 		$allowed_blocks[] = 'gravityforms/form';
 	}
 
-	return true;
 	return $allowed_blocks;
 }
