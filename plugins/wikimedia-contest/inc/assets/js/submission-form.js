@@ -1,8 +1,7 @@
 jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 	$( '#submission-form' ).on( 'submit', function ( e ) {
-
 		e.preventDefault();
-
+		
 		let form = $( this );
 		let form_data = new FormData();
 
@@ -38,7 +37,9 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 			data: form_data,
 			contentType: false,
 			processData: false,
-			withCredentials: true,
+			xhrFields: {
+				withCredentials: true,
+			},
 			/**
 			 * Send the proper X-WP-Nonce header information along with the request
 			 *

@@ -135,6 +135,13 @@ function add_submission_box() : void {
  */
 function set_custom_edit_submission_columns( $columns ) : array {
 	$columns['audio_file'] = 'Audio file';
+
+	// Including column "Review submission" only if it's on the main site of the network.
+	$site_id = get_current_blog_id();
+	if ( is_main_site( $site_id ) ) {
+		$columns['status_change'] = 'Review submission';
+	}
+
 	return $columns;
 }
 
@@ -147,8 +154,39 @@ function set_custom_edit_submission_columns( $columns ) : array {
  */
 function custom_submission_column( $column, $post_id ) : void {
 	switch ( $column ) {
+
 		case 'audio_file':
 			echo sprintf( '<audio controls><source src="%s"></audio>', esc_attr( get_post_meta( $post_id, 'audio_file_path', true ) ) );
+			break;
+
+		case 'status_change':
+			$post_status = get_post_status( $post_id );
+
+			$status_buttons = [
+				'draft' => [
+					'label' => __( 'Draft', 'wikimedia-contest' ),
+					'class' => 'button submission-status-change-button',
+				],
+				'eligible' => [
+					'label' => __( 'Eligible', 'wikimedia-contest' ),
+					'class' => 'button submission-status-change-button',
+				],
+				'ineligible' => [
+					'label' => __( 'Ineligible', 'wikimedia-contest' ),
+					'class' => 'button submission-status-change-button',
+				],
+			];
+
+			foreach ( $status_buttons as $status => $parameters ) {
+				$selected_class = ( $post_status === $status ) ? ' button-primary' : '';
+				echo '
+					<button
+						type="button"
+						name="' . esc_attr( $status ) . '"
+						value="' . esc_attr( $post_id ) . '"
+						class="' . esc_attr( $parameters['class'] . $selected_class ) . '">' . esc_html( $parameters['label'] ) . '</button>&nbsp;';
+			}
+
 			break;
 	}
 }
