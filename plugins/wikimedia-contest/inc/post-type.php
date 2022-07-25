@@ -7,6 +7,8 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
+const SLUG = 'submission';
+
 /**
  * Bootstrap post-type related functionality.
  */
@@ -58,7 +60,7 @@ function register_submission_custom_post_type() {
 		'show_in_rest' => true,
 	];
 
-	register_post_type( 'submission', $args );
+	register_post_type( SLUG, $args );
 }
 
 /**
@@ -121,7 +123,7 @@ function add_submission_box() : void {
 		'submission_box',
 		__( 'Submission Details', 'wikimedia-contest' ),
 		__NAMESPACE__ . '\\submission_metabox_html',
-		'submission',
+		SLUG,
 		'normal',
 		'high'
 	);
@@ -297,7 +299,7 @@ function submission_save_meta( $post_id, $post ) : int {
 	}
 
 	// Check that post is of the correct type.
-	if ( 'submission' !== $post->post_type ) {
+	if ( SLUG !== $post->post_type ) {
 		return $post_id;
 	}
 
