@@ -30,6 +30,7 @@ const COMMENT_AGENT = 'screening_result';
 function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
+	add_action( 'wikimedia-contest/inserted-submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 }
 
 /**
@@ -139,4 +140,36 @@ function add_agent_fields_to_query( $sql_pieces, $comment_query ) {
 	}
 
 	return $sql_pieces;
+}
+
+/**
+ * Assign screening flags to newly inserted entry, if needed.
+ *
+ * @param [] $post_data Post data of newly inserted submission.
+ * @param in $post_id ID of new submission.
+ */
+function inserted_submission( $post_data, $post_id ) {
+	$audio_meta = json_decode( $post_data['meta_input']['audio_file_meta'] ?? '' );
+
+	if ( ! $audio_meta ) {
+		return;
+	}
+
+	$flags = [];
+
+	if ( $audio_meta['duration'] < 1 ) {
+		$flags[] = 'sound_too_long';
+	}
+
+	if ( $audio_meta['duration'] > 4 ) {
+		$flags[] = 'sound_too_long';
+	}
+
+	if ( $audio_meta['sampleRate'] * 32 < 192  * 1024 ) {
+		$flags[] = 'bitrate_too_low';
+	}
+
+	if ( $flags ) {
+		add_screening_comment( $post_id, 'none', $flags );
+	}
 }

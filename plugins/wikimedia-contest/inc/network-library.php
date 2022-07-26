@@ -36,6 +36,15 @@ function insert_submission( $post_data ) {
 	// Switch to the main site to insert the post.
 	switch_to_blog( $main_site_id );
 	$post_id = wp_insert_post( $post_data );
+
+	/*
+	 * Action fired immediately after a submission is inserted into the database.
+	 *
+	 * @param [] $post_data All data passed to wp_insert_post
+	 * @param int $post_id ID of the submitted post.
+	 */
+	do_action( 'wikimedia-contest/inserted-submission', $post_data, $post_id );
+
 	restore_current_blog();
 
 	if ( ! $post_id ) {
