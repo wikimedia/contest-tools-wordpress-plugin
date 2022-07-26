@@ -104,8 +104,6 @@ function get_screening_results( $submission_id ) {
 		'status' => 'any',
 	] );
 
-	var_dump( $comments );
-
 	$results_format = [
 		'decision' => [],
 		'flags' => [],
