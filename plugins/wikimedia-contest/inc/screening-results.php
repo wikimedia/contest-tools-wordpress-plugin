@@ -82,6 +82,7 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 		'comment_type' => COMMENT_TYPE,
 		'comment_agent' => COMMENT_AGENT,
 		'comment_approved' => $status,
+		'comment_author' => get_bloginfo( 'name' ),
 		'comment_content' => $comment_content,
 		'comment_meta' => [
 			'flags' => $flags,
