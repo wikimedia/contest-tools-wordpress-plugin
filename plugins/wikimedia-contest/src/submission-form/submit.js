@@ -1,7 +1,7 @@
 jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 	$( '#submission-form' ).on( 'submit', function ( e ) {
 		e.preventDefault();
-		
+
 		let form = $( this );
 		let form_data = new FormData();
 
@@ -26,6 +26,7 @@ jQuery( document ).ready( function ( $ ) { //eslint-disable-line no-undef
 		let file_data = form.prop( 'audio_file' )['files'][0];
 		if ( file_data ) {
 			form_data.append( 'audio_file', file_data );
+			form_data.append( 'audio_file_meta', form.find( '[type="file"]' ).soundMeta );
 		}
 
 		let url = submission_form_ajax_object.api_url; //eslint-disable-line no-undef

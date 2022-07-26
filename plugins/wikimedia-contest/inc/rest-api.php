@@ -141,6 +141,7 @@ function process_submission_form( \WP_REST_Request $request ) {
 			'authors_contributed'     => sanitize_textarea_field( wp_unslash( $request->get_param( 'authors_contributed' ) ?? '' ) ),
 			'explanation_creation'    => sanitize_textarea_field( wp_unslash( $request->get_param( 'explanation_creation' ) ?? '' ) ),
 			'explanation_inspiration' => sanitize_textarea_field( wp_unslash( $request->get_param( 'explanation_inspiration' ) ?? '' ) ),
+			'audio_file_meta'         => wp_unslash( $request->get_param( 'audio_file_meta' ) ),
 		],
 	];
 

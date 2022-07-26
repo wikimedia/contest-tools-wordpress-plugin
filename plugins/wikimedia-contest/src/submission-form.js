@@ -5,3 +5,5 @@
  */
 
 require( './submission-form/sound-validator' );
+
+require( './submission-form/submit' );

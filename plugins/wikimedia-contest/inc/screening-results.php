@@ -135,7 +135,7 @@ function add_agent_fields_to_query( $sql_pieces, $comment_query ) {
 	global $wpdb;
 
 	if ( ! empty( $comment_query->query_vars['agent'] ) ) {
-		$sql_pieces['where'] .= $wpdb->prepare_sql( ' AND comment_agent = %s', $comment_query->query_vars['agent'] );
+		$sql_pieces['where'] .= $wpdb->prepare( ' AND comment_agent = %s', $comment_query->query_vars['agent'] );
 	}
 
 	return $sql_pieces;
