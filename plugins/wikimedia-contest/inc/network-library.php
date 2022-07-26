@@ -43,7 +43,7 @@ function insert_submission( $post_data ) {
 	 * @param [] $post_data All data passed to wp_insert_post
 	 * @param int $post_id ID of the submitted post.
 	 */
-	do_action( 'wikimedia-contest/inserted-submission', $post_data, $post_id );
+	do_action( 'wikimedia_contest_inserted_submission', $post_data, $post_id );
 
 	restore_current_blog();
 

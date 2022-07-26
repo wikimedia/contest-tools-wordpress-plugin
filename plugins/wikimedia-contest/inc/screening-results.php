@@ -14,12 +14,14 @@ use Wikimedia_Contest\Post_Type;
 
 /**
  * Comment type used to store editorial comments.
+ *
  * @var string
  */
 const COMMENT_TYPE = 'workflow';
 
 /**
  * Name used in the comment agent to identify these comments.
+ *
  * @var string
  */
 const COMMENT_AGENT = 'screening_result';
@@ -30,7 +32,7 @@ const COMMENT_AGENT = 'screening_result';
 function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
-	add_action( 'wikimedia-contest/inserted-submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
+	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
 }
 
@@ -169,7 +171,8 @@ function inserted_submission( $post_data, $post_id ) {
 		$flags[] = 'sound_too_long';
 	}
 
-	if ( $audio_meta->sampleRate * 32 < 192  * 1024 ) {
+	// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
+	if ( $audio_meta->sampleRate * 32 < 192 * 1024 ) {
 		$flags[] = 'bitrate_too_low';
 	}
 

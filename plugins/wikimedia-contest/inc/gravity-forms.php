@@ -35,6 +35,11 @@ function filter_blocks( $allowed_blocks, \WP_Post $post ) {
 	return $allowed_blocks;
 }
 
+/**
+ * Enqueue submission form scripts.
+ *
+ * TODO: only enqueue on the page containing the submission form.
+ */
 function enqueue_form_scripts() {
 
 	$manifest = Manifest\get_active_manifest( [
