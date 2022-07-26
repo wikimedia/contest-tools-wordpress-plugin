@@ -31,6 +31,7 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia-contest/inserted-submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
+	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
 }
 
 /**
@@ -99,8 +100,10 @@ function get_screening_results( $submission_id ) {
 		'post_id' => $submission_id,
 		'type' => COMMENT_TYPE,
 		'agent' => COMMENT_AGENT,
-		'status' => [ 'eligible', 'ineligible', null ],
+		'status' => 'any',
 	] );
+
+	var_dump( $comments );
 
 	$results_format = [
 		'decision' => [],
@@ -110,13 +113,15 @@ function get_screening_results( $submission_id ) {
 	$screening_results = array_reduce(
 		$comments,
 		function ( $results, $comment ) {
+
+			// Push any 'eligible' / 'ineligible' votes into the decision field.
 			if ( in_array( $comment->comment_approved, [ 'eligible', 'ineligible' ] ) ) {
 				array_push( $results['decision'], $comment->comment_approved );
 			}
 
+			// Add all flags on the post to an array.
 			$flags = get_comment_meta( $comment->comment_ID, 'flags', true ) ?: [];
 			$results['flags'] = array_unique( array_merge( $results['flags'], $flags ) );
-
 			return $results;
 		},
 		$results_format,
@@ -157,19 +162,33 @@ function inserted_submission( $post_data, $post_id ) {
 
 	$flags = [];
 
-	if ( $audio_meta['duration'] < 1 ) {
+	if ( $audio_meta->duration < 1 ) {
 		$flags[] = 'sound_too_long';
 	}
 
-	if ( $audio_meta['duration'] > 4 ) {
+	if ( $audio_meta->duration > 4 ) {
 		$flags[] = 'sound_too_long';
 	}
 
-	if ( $audio_meta['sampleRate'] * 32 < 192  * 1024 ) {
+	if ( $audio_meta->sampleRate * 32 < 192  * 1024 ) {
 		$flags[] = 'bitrate_too_low';
 	}
 
 	if ( $flags ) {
-		add_screening_comment( $post_id, 'none', $flags );
+		add_screening_comment( $post_id, null, $flags );
 	}
+}
+
+/**
+ * Allow our custom statuses here to show up in the admin meta box.
+ *
+ * @param [] $query_args Args array passed to REST workflows query.
+ * @return [] Updated query args.
+ */
+function allow_custom_statuses_in_workflows_query( $query_args ) {
+	if ( $query_args['type'] === COMMENT_TYPE ) {
+		$query_args['status'] = 'any';
+	}
+
+	return $query_args;
 }
