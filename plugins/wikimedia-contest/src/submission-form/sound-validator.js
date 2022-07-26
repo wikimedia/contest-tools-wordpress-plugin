@@ -92,13 +92,11 @@ const validateSoundFile = async ( { target } ) => {
 
 	const { name, size, type } = file;
 
-	console.log( name, size, type );
-
 	// Validate file type.
 	if ( ! ALLOWED_TYPES.includes( type ) ) {
 		validations.push( {
 			error: true,
-			message: __( 'File must be one of the allowed types.', 'wikimedia-contest' ),
+			message: __( 'File must be one of the allowed types: MP3, OGG, or WAV.', 'wikimedia-contest' ),
 		} );
 	}
 
