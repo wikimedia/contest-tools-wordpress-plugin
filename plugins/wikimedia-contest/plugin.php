@@ -25,6 +25,9 @@ Network_Library\bootstrap();
 require_once __DIR__ . '/inc/post-type.php';
 Post_Type\bootstrap();
 
+require_once __DIR__ . '/inc/screening-results.php';
+Screening_Results\bootstrap();
+
 require_once __DIR__ . '/inc/editor.php';
 Editor\bootstrap();
 
