@@ -92,6 +92,8 @@ const validateSoundFile = async ( { target } ) => {
 
 	const { name, size, type } = file;
 
+	console.log( name, size, type );
+
 	// Validate file type.
 	if ( ! ALLOWED_TYPES.includes( type ) ) {
 		validations.push( {
@@ -106,6 +108,10 @@ const validateSoundFile = async ( { target } ) => {
 			error: true,
 			message: __( 'File must be less than 100MB.', 'wikimedia-contest' ),
 		} );
+	}
+
+	if ( validations.length ) {
+		return markValidation( target, validations );
 	}
 
 	const fileBuffer = await file.arrayBuffer();
