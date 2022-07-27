@@ -114,52 +114,60 @@ const validateSoundFile = async ( { target } ) => {
 	}
 
 	const fileBuffer = await file.arrayBuffer();
-	const buffer = await audioContext.decodeAudioData( fileBuffer );
-	const { sampleRate, numberOfChannels, duration } = buffer;
 
-	// Validate sound duration.
-	if ( duration > 10 ) {
+	try {
+		const buffer = await audioContext.decodeAudioData( fileBuffer );
+		const { sampleRate, numberOfChannels, duration } = buffer;
+
+		// Validate sound duration.
+		if ( duration > 10 ) {
+			validations.push( {
+				error: true,
+				message: __( 'Sound must be less than 10s.', 'wikimedia-contest' ),
+			} );
+		} else if ( duration < 1 ) {
+			validations.push( {
+				error: true,
+				message: __( 'Sound must be at least 1s.', 'wikimedia-contest' ),
+			} );
+		} else if ( duration > 4 ) {
+			validations.push( {
+				error: false,
+				message: __( 'Sound should be less than 4s.', 'wikimedia-contest' ),
+			} );
+		}
+
+		// TODO: Confirm that this is the correct way of getting bitrate.
+		const bitRate = sampleRate * 32;
+
+		// Validate bitrate.
+		if ( type === 'audio/mp3' && bitRate < ( 192 * 1024 ) ) {
+			validations.push( {
+				error: false,
+				message: __( 'MP3 files should be at least 192kbps.', 'wikimedia-contest' ),
+			} );
+		} else if ( type === 'video/ogg' && bitRate < ( 160 * 1024 ) ) {
+			validations.push( {
+				error: false,
+				message: __( 'OGG files should be at least 160kbps.', 'wikimedia-contest' ),
+			} );
+		}
+
+		// Save soundfile meta in hidden field.
+		target.soundMeta = {
+			name,
+			type,
+			size,
+			sampleRate,
+			numberOfChannels,
+			duration,
+		};
+	} catch {
 		validations.push( {
 			error: true,
-			message: __( 'Sound must be less than 10s.', 'wikimedia-contest' ),
-		} );
-	} else if ( duration < 1 ) {
-		validations.push( {
-			error: true,
-			message: __( 'Sound must be at least 1s.', 'wikimedia-contest' ),
-		} );
-	} else if ( duration > 4 ) {
-		validations.push( {
-			error: false,
-			message: __( 'Sound should be less than 4s.', 'wikimedia-contest' ),
+			message: __( 'Audio file is not readable.', 'wikimedia-contest' ),
 		} );
 	}
-
-	// TODO: Confirm that this is the correct way of getting bitrate.
-	const bitRate = sampleRate * 32;
-
-	// Validate bitrate.
-	if ( type === 'audio/mp3' && bitRate < ( 192 * 1024 ) ) {
-		validations.push( {
-			error: false,
-			message: __( 'MP3 files should be at least 192kbps.', 'wikimedia-contest' ),
-		} );
-	} else if ( type === 'video/ogg' && bitRate < ( 160 * 1024 ) ) {
-		validations.push( {
-			error: false,
-			message: __( 'OGG files should be at least 160kbps.', 'wikimedia-contest' ),
-		} );
-	}
-
-	// Save soundfile meta in hidden field.
-	target.soundMeta = {
-		name,
-		type,
-		size,
-		sampleRate,
-		numberOfChannels,
-		duration,
-	};
 
 	// Mark the file validity in the field.
 	markValidation( target, validations );
