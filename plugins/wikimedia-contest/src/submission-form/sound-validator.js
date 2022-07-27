@@ -33,7 +33,7 @@ const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/x-wav' ];
 /**
  * Maximum upload file size: 100MB.
  */
-const MAX_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_FILE_SIZE = 100000000;
 
 /**
  * The file upload field on the form.
