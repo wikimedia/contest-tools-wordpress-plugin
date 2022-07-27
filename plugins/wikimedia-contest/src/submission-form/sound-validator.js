@@ -109,7 +109,8 @@ const validateSoundFile = async ( { target } ) => {
 	}
 
 	if ( validations.length ) {
-		return markValidation( target, validations );
+		markValidation( target, validations );
+		return;
 	}
 
 	const fileBuffer = await file.arrayBuffer();
