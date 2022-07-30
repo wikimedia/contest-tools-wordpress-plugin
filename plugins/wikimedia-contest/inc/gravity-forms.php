@@ -18,7 +18,6 @@ use Wikimedia_Contest\Network_Library;
 function bootstrap() {
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
-
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\register_submission_id_merge_tag', 10, 4 );
 }
@@ -84,47 +83,51 @@ function handle_entry_submission( $entry, $form ) {
 
 	// Contributing authors: any data in fields matching this label format.
 	$contributing_authors = array_filter(
-		array_intersect_key(
-			$formatted_entry,
-			array_flip( [
-				'contributor_1',
-				'contributor_2',
-				'contributor_3',
-				'contributor_4',
-				'contributor_5',
-				'contributor_6',
-				'contributor_7',
-				'contributor_8',
-			] )
+		array_values(
+			array_intersect_key(
+				$formatted_entry,
+				array_flip( [
+					'contributor_1',
+					'contributor_2',
+					'contributor_3',
+					'contributor_4',
+					'contributor_5',
+					'contributor_6',
+					'contributor_7',
+					'contributor_8',
+				] )
+			)
 		)
 	);
 
 	$creation_process = [
 		'all_original_sounds' => $formatted_entry['all_original_sounds'],
 		'cc0_or_public_domain' => $formatted_entry['cc0_or_public_domain'],
+		'used_prerecorded_sounds' => $formatted_entry['used_prerecorded_sounds'],
 		'used_soundpack_library' => $formatted_entry['used_soundpack_library'],
 		'used_samples' => $formatted_entry['used_samples'],
 		'source_urls' => $formatted_entry['source_urls'],
 	];
 
 	$submission_post = [
-		'post_title'  => sprintf( 'Submission %s', $submission_unique_code ),
-		'post_status' => 'draft',
-		'post_author' => 1,
-		'post_type'   => 'submission',
-		'meta_input'  => [
+		'post_title'                  => sprintf( 'Submission %s', $submission_unique_code ),
+		'post_status'                 => 'draft',
+		'post_author'                 => 1,
+		'post_type'                   => 'submission',
+		'meta_input'                  => [
 			'unique_code'             => $submission_unique_code,
-			'legal_name'              => $formatted_entry['legal_name'] ?? '',
-			'email'                   => $formatted_entry['email'] ?? '',
-			'wiki_username'           => $formatted_entry['wiki_username'] ?? '',
-			'phone_number'            => $formatted_entry['phone_number'] ?? '',
-			'pronouns'                => $formatted_entry['pronouns'] ?? '',
+			'submitter_name'          => $formatted_entry['submitter_name'] ?? '',
+			'submitter_email'         => $formatted_entry['submitter_email'] ?? '',
+			'submitter_country'       => $formatted_entry['submitter_country'] ?? '',
+			'submitter_wiki_user'     => $formatted_entry['submitter_wiki_user'] ?? '',
+			'submitter_phone'         => $formatted_entry['submitter_phone'] ?? '',
+			'submitter_pronouns'      => $formatted_entry['submitter_pronouns'] ?? '',
 			'explanation_creation'    => $formatted_entry['explanation_creation'] ?? '',
 			'explanation_inspiration' => $formatted_entry['explanation_inspiration'] ?? '',
 			'creation_process'        => $creation_process,
 			'contributing_authors'    => $contributing_authors,
-			'audio_file'              => $formatted_entry['fdlkgjfdlkg'] ?? null,
-			'audio_file_meta'         => $formatted_entry['audio_file_meta'] ?? '',
+			'audio_file'              => $formatted_entry['audio_file'] ?? null,
+			'audio_file_meta'         => $audio_file_meta,
 		],
 	];
 
