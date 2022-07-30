@@ -76,7 +76,9 @@ function enqueue_form_scripts() {
  */
 function handle_entry_submission( $entry, $form ) {
 	$formatted_entry = process_entry_fields( $entry, $form );
-	var_dump( $formatted_entry );
+
+	// The audio file meta is posted along with the file, but isn't handled by GF.
+	$audio_file_meta = json_decode( wp_unslash( $_POST['audio_file_meta'] ?? '' ), true );
 
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );

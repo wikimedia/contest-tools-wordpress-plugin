@@ -43,6 +43,13 @@ const MAX_FILE_SIZE = 100000000;
 const fileUploadField = document.querySelector( 'input[type="file"]' );
 
 /**
+ * A hidden field to submit meta data along with the file upload.
+ *
+ * @member {HTMLElement}
+ */
+let audioMetaField = null;
+
+/**
  * Mark a validation error or message.
  *
  * @param {HTMLElement} field Upload field being checked.
@@ -79,6 +86,22 @@ const getValidationMessageElement = field => {
 	} else {
 		return jQuery( '<div class="validation_message"></div>' ).insertAfter( field );
 	}
+};
+
+/**
+ * Get or create and return the hidden field for submitting audio meta.
+ *
+ * @param {HTMLElement} field File upload form field.
+ * @returns {HTMLElement} The audio_meta hidden field.
+ */
+const getAudioMetaInput = field => {
+	if ( ! audioMetaField ) {
+		audioMetaField = jQuery( '<input type="hidden" name="audio_file_meta" value="" />' );
+		jQuery( field ).closest( 'div' ).append( audioMetaField );
+		//audioMetaField = field.closest( 'div' ).querySelector( '[name="audio_file_meta"]' );
+	}
+
+	return audioMetaField;
 };
 
 /**
@@ -154,15 +177,16 @@ const validateSoundFile = async ( { target } ) => {
 		}
 
 		// Save soundfile meta in hidden field.
-		target.soundMeta = {
+		getAudioMetaInput( target ).value = JSON.stringify( {
 			name,
 			type,
 			size,
 			sampleRate,
 			numberOfChannels,
 			duration,
-		};
-	} catch {
+		} );
+	} catch (error) {
+		console.error( error );
 		validations.push( {
 			error: true,
 			message: __( 'Audio file is not readable.', 'wikimedia-contest' ),

@@ -155,7 +155,7 @@ function add_agent_fields_to_query( $sql_pieces, $comment_query ) {
  * @param in $post_id ID of new submission.
  */
 function inserted_submission( $post_data, $post_id ) {
-	$audio_meta = json_decode( $post_data['meta_input']['audio_file_meta'] ?? '' );
+	$audio_meta = $post_data['meta_input']['audio_file_meta'];
 
 	if ( ! $audio_meta ) {
 		return;
@@ -163,16 +163,16 @@ function inserted_submission( $post_data, $post_id ) {
 
 	$flags = [];
 
-	if ( $audio_meta->duration < 1 ) {
+	if ( $audio_meta['duration'] < 1 ) {
 		$flags[] = 'sound_too_long';
 	}
 
-	if ( $audio_meta->duration > 4 ) {
+	if ( $audio_meta['duration'] > 4 ) {
 		$flags[] = 'sound_too_long';
 	}
 
 	// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
-	if ( $audio_meta->sampleRate * 32 < 192 * 1024 ) {
+	if ( $audio_meta['sampleRate'] * 32 < 192 * 1024 ) {
 		$flags[] = 'bitrate_too_low';
 	}
 
