@@ -11,7 +11,6 @@ use Asset_Loader;
 use Asset_Loader\Manifest;
 use Wikimedia_Contest\Network_Library;
 
-
 /**
  * Bootstrap form functionality.
  */
@@ -100,9 +99,6 @@ function identify_audio_meta_field( $form ) {
 function handle_entry_submission( $entry, $form ) {
 	$formatted_entry = process_entry_fields( $entry, $form );
 
-	// The audio file meta is posted along with the file, but isn't handled by GF.
-	$audio_file_meta = json_decode( wp_unslash( $_POST['audio_file_meta'] ?? '' ), true );
-
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );
 
@@ -152,7 +148,7 @@ function handle_entry_submission( $entry, $form ) {
 			'creation_process'        => $creation_process,
 			'contributing_authors'    => $contributing_authors,
 			'audio_file'              => $formatted_entry['audio_file'] ?? null,
-			'audio_file_meta'         => $audio_file_meta,
+			'audio_file_meta'         => json_decode( $formatted_entry['audio_file_meta'] ?? '', true ),
 		],
 	];
 
@@ -179,6 +175,7 @@ function process_entry_fields( $entry, $form ) {
 	 * and string keys that look like numbers, like "21.3".
 	 */
 	foreach ( $form['fields'] as $field ) {
+		// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$entry_fields[ (string) $field->id ] = $field->adminLabel ?: $field->label;
 
 		// If the field has multiple inputs (for example first and last name),
