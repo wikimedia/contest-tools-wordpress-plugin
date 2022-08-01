@@ -18,6 +18,7 @@ use Wikimedia_Contest\Network_Library;
 function bootstrap() {
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
+	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\register_submission_id_merge_tag', 10, 4 );
 }
@@ -63,6 +64,29 @@ function enqueue_form_scripts() {
 			'handle' => 'wikimedia_contest_submission_form',
 		]
 	);
+}
+
+/**
+ * Define a JS variable with the field name of the audio_file_meta hidden field.
+ *
+ * Using a Gravity Forms hidden field gives us a lot of the behavior we want
+ * for free, like persisting meta content on form refreshes. Unfortunately,
+ * there isn't a hook available to filter the output of that field and add an
+ * attribute which can be used to target it in javascript. So we look it up and
+ * save its field ID as a variable for use in targeting the field.
+ *
+ * @param Form $form The form being rendered.
+ * @return Form
+ */
+function identify_audio_meta_field( $form ) {
+	$field = current( wp_list_filter( $form['fields'], [ 'label' => 'audio_file_meta' ] ) );
+
+	if ( $field ) {
+		$field_id = "input_{$field->formId}_{$field->id}";
+		echo "\r\n" . '<script type="text/javascript">var audioFileMetaField = "' . esc_js( $field_id ) . '";</script>';
+	}
+
+	return $form;
 }
 
 /**
@@ -151,9 +175,7 @@ function handle_entry_submission( $entry, $form ) {
  * @return [] Array of admin field labels to entry values.
  */
 function process_entry_fields( $entry, $form ) {
-
 	$formatted_entry = [];
-
 	$entry_fields = [];
 
 	/*

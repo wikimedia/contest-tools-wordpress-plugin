@@ -1,4 +1,4 @@
-// global: jQuery
+// global: jQuery, audioFileMetaField
 /**
  * Functionality for validating uploaded sound files.
  *
@@ -43,13 +43,6 @@ const MAX_FILE_SIZE = 100000000;
 const fileUploadField = document.querySelector( 'input[type="file"]' );
 
 /**
- * A hidden field to submit meta data along with the file upload.
- *
- * @member {HTMLElement}
- */
-let audioMetaField = null;
-
-/**
  * Mark a validation error or message.
  *
  * @param {HTMLElement} field Upload field being checked.
@@ -89,20 +82,11 @@ const getValidationMessageElement = field => {
 };
 
 /**
- * Get or create and return the hidden field for submitting audio meta.
+ * Get and return the hidden field for submitting audio meta.
  *
- * @param {HTMLElement} field File upload form field.
- * @returns {HTMLElement} The audio_meta hidden field.
+ * @returns {HTMLElement} The audio_file_meta hidden field.
  */
-const getAudioMetaInput = field => {
-	if ( ! audioMetaField ) {
-		audioMetaField = jQuery( '<input type="hidden" name="audio_file_meta" value="" />' );
-		jQuery( field ).closest( 'div' ).append( audioMetaField );
-		//audioMetaField = field.closest( 'div' ).querySelector( '[name="audio_file_meta"]' );
-	}
-
-	return audioMetaField;
-};
+const getAudioMetaInput = () => document.getElementById( window.audioFileMetaField );
 
 /**
  * Process the uploaded file.
@@ -177,16 +161,20 @@ const validateSoundFile = async ( { target } ) => {
 		}
 
 		// Save soundfile meta in hidden field.
-		getAudioMetaInput( target ).value = JSON.stringify( {
-			name,
-			type,
-			size,
-			sampleRate,
-			numberOfChannels,
-			duration,
-		} );
-	} catch (error) {
-		console.error( error );
+		const audioMetaField = getAudioMetaInput();
+
+		if ( audioMetaField ) {
+			audioMetaField.value = JSON.stringify( {
+				name,
+				type,
+				size,
+				sampleRate,
+				numberOfChannels,
+				duration,
+			} );
+		}
+	} catch ( error ) {
+		console.error( error ); // eslint:disable no-console
 		validations.push( {
 			error: true,
 			message: __( 'Audio file is not readable.', 'wikimedia-contest' ),
