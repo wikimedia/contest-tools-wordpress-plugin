@@ -20,7 +20,6 @@ function bootstrap() {
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
-	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\register_submission_id_merge_tag', 10, 4 );
 }
 
 /**
@@ -158,13 +157,6 @@ function handle_entry_submission( $entry, $form ) {
 	];
 
 	$post_data = Network_Library\insert_submission( $submission_post );
-
-	// Add the submission post ID to the merge tag data so it can be included
-	// in the confirmation message.
-	add_filter( 'gform_merge_tag_data', function ( $merge_tag_data ) use ( $post_data ) {
-		$merge_tag_data['submission_id'] = $post_data['post_id'];
-		return $merge_tag_data;
-	} );
 }
 
 /**
@@ -193,6 +185,10 @@ function process_entry_fields( $entry, $form ) {
 		// get the labels from each of them.
 		if ( is_array( $field['inputs'] ) ) {
 			foreach ( $field['inputs'] as $input ) {
+				// Skip fields without a key, they can't hold values.
+				if ( empty( $input['key'] ) ) {
+					continue;
+				}
 				$entry_fields[ $input['key'] ] = $input['label'];
 			}
 		}
@@ -205,19 +201,4 @@ function process_entry_fields( $entry, $form ) {
 	}
 
 	return $formatted_entry;
-}
-
-/**
- * Register "Submission ID" as a merge tage to use in form confirmations.
- *
- * @param [] $merge_tags Array of default merge tags.
- * @return [] Updated array of merge tags.
- */
-function register_submission_id_merge_tag( $merge_tags ) {
-	$merge_tags[] = [
-		'label' => __( 'Submission ID', 'wikimedia-contest-admin' ),
-		'tag' => '{submission_id}',
-	];
-
-	return $merge_tags;
 }
