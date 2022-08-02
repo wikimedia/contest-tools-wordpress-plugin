@@ -164,7 +164,7 @@ function inserted_submission( $post_data, $post_id ) {
 	$flags = [];
 
 	if ( $audio_meta['duration'] < 1 ) {
-		$flags[] = 'sound_too_long';
+		$flags[] = 'sound_too_short';
 	}
 
 	if ( $audio_meta['duration'] > 4 ) {
