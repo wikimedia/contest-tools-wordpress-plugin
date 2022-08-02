@@ -101,7 +101,7 @@ function handle_entry_submission( $entry, $form ) {
 
 	$audio_file_meta_raw = json_decode( $formatted_entry['audio_file_meta'] ?? '', true );
 
-	// Define allowed field values for audio file meta array,
+	// Define allowed field values for audio file meta array.
 	$audio_meta_allowed_values = [
 		'name' => 'sanitize_text_field',
 		'type' => 'sanitize_text_field',
