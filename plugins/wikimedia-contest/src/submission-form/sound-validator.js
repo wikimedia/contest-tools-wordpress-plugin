@@ -82,6 +82,13 @@ const getValidationMessageElement = field => {
 };
 
 /**
+ * Get and return the hidden field for submitting audio meta.
+ *
+ * @returns {HTMLElement} The audio_file_meta hidden field.
+ */
+const getAudioMetaInput = () => document.getElementById( window.audioFileMetaField );
+
+/**
  * Process the uploaded file.
  *
  * @param {Event} Change event on the file upload field.
@@ -154,15 +161,22 @@ const validateSoundFile = async ( { target } ) => {
 		}
 
 		// Save soundfile meta in hidden field.
-		target.soundMeta = {
-			name,
-			type,
-			size,
-			sampleRate,
-			numberOfChannels,
-			duration,
-		};
-	} catch {
+		const audioMetaField = getAudioMetaInput();
+
+		if ( audioMetaField ) {
+			audioMetaField.value = JSON.stringify( {
+				name,
+				type,
+				size,
+				sampleRate,
+				numberOfChannels,
+				duration,
+			} );
+		}
+	} catch ( error ) {
+		/* eslint-disable no-console */
+		console.error( error );
+
 		validations.push( {
 			error: true,
 			message: __( 'Audio file is not readable.', 'wikimedia-contest' ),
