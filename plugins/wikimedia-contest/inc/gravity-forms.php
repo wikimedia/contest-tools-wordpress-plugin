@@ -99,6 +99,24 @@ function identify_audio_meta_field( $form ) {
 function handle_entry_submission( $entry, $form ) {
 	$formatted_entry = process_entry_fields( $entry, $form );
 
+	$audio_file_meta_raw = json_decode( $formatted_entry['audio_file_meta'] ?? '', true );
+
+	// Define allowed field values for audio file meta array,
+	$audio_meta_allowed_values = [
+		'name' => 'sanitize_text_field',
+		'type' => 'sanitize_text_field',
+		'size' => 'absint',
+		'sampleRate' => 'absint',
+		'numberOfChannels' => 'absint',
+		'duration' => 'floatval',
+	];
+	$audio_file_meta = [];
+	foreach ( $audio_meta_allowed_values as $key => $sanitize_function ) {
+		if ( isset( $audio_file_meta_raw[ $key ] ) ) {
+			$audio_file_meta[ $key ] = call_user_func( $sanitize_function, $audio_file_meta_raw[ $key ] );
+		}
+	}
+
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );
 
@@ -148,7 +166,7 @@ function handle_entry_submission( $entry, $form ) {
 			'creation_process'        => $creation_process,
 			'contributing_authors'    => $contributing_authors,
 			'audio_file'              => $formatted_entry['audio_file'] ?? null,
-			'audio_file_meta'         => json_decode( $formatted_entry['audio_file_meta'] ?? '', true ),
+			'audio_file_meta'         => $audio_file_meta,
 		],
 	];
 
