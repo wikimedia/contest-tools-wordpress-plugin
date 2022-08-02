@@ -1,4 +1,4 @@
-// global: jQuery, audioFileMetaField
+// global: jQuery
 /**
  * Functionality for validating uploaded sound files.
  *
