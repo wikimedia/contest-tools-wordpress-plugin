@@ -174,7 +174,9 @@ const validateSoundFile = async ( { target } ) => {
 			} );
 		}
 	} catch ( error ) {
-		console.error( error ); // eslint:disable no-console
+		/* eslint-disable no-console */
+		console.error( error );
+
 		validations.push( {
 			error: true,
 			message: __( 'Audio file is not readable.', 'wikimedia-contest' ),
