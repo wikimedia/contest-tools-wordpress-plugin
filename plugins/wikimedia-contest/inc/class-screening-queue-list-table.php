@@ -93,6 +93,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 			'orderby' => $_REQUEST['orderby'] ?? 'date',
 			'order' => $_REQUEST['order'] ?? 'desc',
 			'paged' => $_REQUEST['paged'] ?? 1,
+			'cache_results' => false,
 		] );
 
 		// phpcs:enable HM.Security.NonceVerification.Recommended
