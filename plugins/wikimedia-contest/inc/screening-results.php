@@ -156,6 +156,8 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 
 	$flags = array_intersect( $flags, array_keys( $allowed_flags ) );
 
+	$comment_author = wp_get_current_user();
+
 	$comment_content = wp_json_encode( [
 		'status' => $status,
 		'flags' => $flags,
@@ -166,12 +168,12 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 		'comment_type' => COMMENT_TYPE,
 		'comment_agent' => COMMENT_AGENT,
 		'comment_approved' => $status,
-		'comment_author' => get_bloginfo( 'name' ),
+		'comment_author' => $comment_author->user_nicename ?? get_bloginfo( 'name' ),
 		'comment_content' => $comment_content,
 		'comment_meta' => [
 			'flags' => $flags,
 		],
-		'user_id' => get_current_user_id(),
+		'user_id' => $comment_author->ID ?? 0,
 	] );
 }
 
