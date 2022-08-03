@@ -50,17 +50,24 @@ function bootstrap() {
  * Register screener role.
  */
 function register_screener_role() {
-	$role = add_role(
-		USER_ROLE,
-		__( 'Screener', 'wikimedia-contest-admin' ),
-		array_merge(
-			get_role( 'subscriber' )->capabilities,
-			[
-				'screen_submissions' => true,
-				'view_screened_submissions' => false,
-			]
-		)
-	);
+	$roles = get_option( 'wikimedia_contest_roles' ) ?: [];
+
+	if ( ! isset( $roles['screener'] ) ) {
+		wpcom_vip_add_role(
+			USER_ROLE,
+			__( 'Screener', 'wikimedia-contest-admin' ),
+			array_merge(
+				get_role( 'subscriber' )->capabilities,
+				[
+					'screen_submissions' => true,
+					'view_screened_submissions' => false,
+				]
+			)
+		);
+
+		$roles['screener'] = 1;
+		update_option( 'wikimedia_contest_roles', $roles );
+	}
 }
 
 /**

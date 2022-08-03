@@ -2,17 +2,14 @@
 /**
  * List table for rendering the Screening Queue.
  *
- * @extends \WP_List_Table
+ * @extends WP_PostsList_Table
+ *
+ * phpcs:disable PSR1.Files.SideEffects.FoundWithSymbols
  */
+
 namespace Wikimedia_Contest;
 
 use WP_Posts_List_Table;
-
-if ( ! class_exists( 'WP_Post_List_Table' ) ){
-    require_once ABSPATH . 'wp-admin/includes/screen.php';
-    require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
-    require_once ABSPATH . 'wp-admin/includes/class-wp-posts-list-table.php';
-}
 
 /**
  * List table for displaying all submissions awaiting screening.
@@ -25,7 +22,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	/**
 	 * Override some base controls from the parent class.
 	 *
-	 * @param [] $args
+	 * @param [] $args Instantiation args (ignored).
 	 */
 	function __construct( $args = [] ) {
 		parent::__construct( [
@@ -52,7 +49,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		global $wpdb;
 		$user_id = get_current_user_id();
 
-		$sql_pieces['join'] .= $wpdb->prepare ( "
+		$sql_pieces['join'] .= $wpdb->prepare( "
 			LEFT OUTER JOIN {$wpdb->comments}
 			ON (
 				{$wpdb->posts}.ID = {$wpdb->comments}.comment_post_ID
@@ -76,11 +73,18 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function prepare_items() {
 		global $wpdb, $wp_query, $per_page;
 
+		// phpcs:disable HM.Security.NonceVerification.Recommended
+		// phpcs:disable HM.Security.ValidatedSanitizedInput.MissingUnslash
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 		$per_page = $this->get_items_per_page( 'edit_submissions_per_page', 20 );
-		$paged = $_REQUEST['paged'] ?? 1;
+		$paged = absint( $_REQUEST['paged'] ?? 1 );
 
 		// Add comment filters to only show posts user can screen.
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
+
 		// Set up WP_Query vars.
 		wp_edit_posts_query( [
 			'post_type' => 'submission',
@@ -91,8 +95,14 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 			'paged' => $_REQUEST['paged'] ?? 1,
 		] );
 
+		// phpcs:enable HM.Security.NonceVerification.Recommended
+		// phpcs:enable HM.Security.ValidatedSanitizedInput.MissingUnslash
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
 		// Ensure not to mess with any other queries on the page.
 		remove_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
+
 		$this->set_pagination_args( [
 			'total_items' => $wp_query->found_posts,
 			'total_pages' => $wp_query->max_num_pages,
@@ -169,11 +179,15 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 */
 	function column_col_submission_date() {
 		// Use core's date format strings for proper localization.
+		// phpcs:disable HM.Security.EscapeOutput.OutputNotEscaped
+		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo sprintf(
 			__( '%1$s at %2$s' ),
 			get_the_time( __( 'Y/m/d' ), $post ),
 			get_the_time( __( 'g:i a' ), $post )
 		);
+		// phpcs:enable HM.Security.EscapeOutput.OutputNotEscaped
+		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	/**
@@ -188,7 +202,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		if ( $screening_results['flags'] ) {
 			foreach ( $screening_results['flags'] as $flag ) {
 				if ( isset( $available_flags[ $flag ] ) ) {
-					echo '<span class="screening-flag">' . $available_flags[ $flag ] . '</span>';
+					echo '<span class="screening-flag">' . esc_html( $available_flags[ $flag ] ) . '</span>';
 				}
 			}
 		}
