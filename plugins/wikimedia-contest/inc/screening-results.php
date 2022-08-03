@@ -171,6 +171,7 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 		'comment_meta' => [
 			'flags' => $flags,
 		],
+		'user_id' => get_current_user_id(),
 	] );
 }
 
