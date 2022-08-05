@@ -106,26 +106,26 @@ function render_accesible_select_field( $field_input, $field, $value ) {
 	$id = sanitize_key( "input_{$field->id}" );
 	ob_start();
 ?>
-	<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
 <div class="ginput_container">
 	<div class="gfield_label gfield_required" id="<?php echo esc_attr( $id ); ?>">
 		<?php echo esc_html( $field->label ); ?>
 	</div>
 	<div class="gfield_custom_select">
-	<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
-	</button>
-		<ul class="gfield_listbox" role="listbox" id="sex-list" tabindex="-1">
+		<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
+		</button>
+		<ul class="gfield_listbox" role="listbox" id="<?php echo esc_attr( "{$id}_list" ); ?>" tabindex="-1">
 			<?php
 			foreach ( $field->choices as $option ) {
 				echo '<li class="gfield_option' .
 					( $option['isSelected'] ? ' is-selected' : '' ) . '" ' .
 					'tabindex="0" ' .
-					'id="' . esc_attr( $option['value'] ) . '" ' .
+					'data-value="' . esc_attr( $option['value'] ) . '" ' .
 					'role="option">' .
 					esc_html( $option['text'] ) . '</li>';
 			}
 			?>
 		</ul>
+		<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
 	</div>
 </div>
 <?php
