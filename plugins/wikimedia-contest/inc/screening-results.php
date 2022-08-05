@@ -11,6 +11,14 @@
 namespace Wikimedia_Contest\Screening_Results;
 
 use Wikimedia_Contest\Post_Type;
+use Wikimedia_Contest\Screening_Queue_List_Table;
+
+/**
+ * User role for screeners.
+ *
+ * @var string
+ */
+const USER_ROLE = 'screener';
 
 /**
  * Comment type used to store editorial comments.
@@ -30,10 +38,84 @@ const COMMENT_AGENT = 'screening_result';
  * Bootstrap screening results related functionality.
  */
 function bootstrap() {
+	add_action( 'init', __NAMESPACE__ . '\\register_screener_role' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\register_screening_queue_menu_page' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
+}
+
+/**
+ * Register screener role.
+ */
+function register_screener_role() {
+	$roles = get_option( 'wikimedia_contest_roles' ) ?: [];
+
+	if ( ! isset( $roles['screener'] ) ) {
+		wpcom_vip_add_role(
+			USER_ROLE,
+			__( 'Screener', 'wikimedia-contest-admin' ),
+			array_merge(
+				get_role( 'subscriber' )->capabilities,
+				[
+					'screen_submissions' => true,
+					'view_screened_submissions' => false,
+				]
+			)
+		);
+
+		$roles['screener'] = 1;
+		update_option( 'wikimedia_contest_roles', $roles );
+	}
+}
+
+/**
+ * Add the Screening Queue to the admin menu.
+ *
+ * If the user can edit submissions, this page will be a submenu page under the
+ * Submissions header. Otherwise, it's a top-level menu item.
+ */
+function register_screening_queue_menu_page() {
+
+	if ( current_user_can( 'edit_submissions' ) ) {
+		add_submenu_page(
+			'edit.php?post_type=submission',
+			__( 'Screening Queue', 'wikimedia-contest-admin' ),
+			__( 'Screening Queue', 'wikimedia-contest-admin' ),
+			'screen_submissions',
+			'screening-queue',
+			__NAMESPACE__ . '\\render_screening_queue',
+			5
+		);
+	} else {
+		add_menu_page(
+			__( 'Screening Queue', 'wikimedia-contest-admin' ),
+			__( 'Screening Queue', 'wikimedia-contest-admin' ),
+			'screen_submissions',
+			'screening-queue',
+			__NAMESPACE__ . '\\render_screening_queue',
+			'dashicons-yes-alt',
+			5
+		);
+	}
+}
+
+/**
+ * Render the Screening Queue page.
+ */
+function render_screening_queue() {
+	require_once __DIR__ . '/class-screening-queue-list-table.php';
+	$list_table = new Screening_Queue_List_Table();
+	$list_table->prepare_items();
+
+	echo '<div id="screening-queue" class="wrap">';
+	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Screening Queue', 'wikimedia-contest-admin' ) . '</h1>';
+	echo '<hr class="wp-header-end">';
+
+	$list_table->display();
+
+	echo '</div>';
 }
 
 /**
@@ -74,6 +156,8 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 
 	$flags = array_intersect( $flags, array_keys( $allowed_flags ) );
 
+	$comment_author = wp_get_current_user();
+
 	$comment_content = wp_json_encode( [
 		'status' => $status,
 		'flags' => $flags,
@@ -84,11 +168,12 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 		'comment_type' => COMMENT_TYPE,
 		'comment_agent' => COMMENT_AGENT,
 		'comment_approved' => $status,
-		'comment_author' => get_bloginfo( 'name' ),
+		'comment_author' => $comment_author->user_nicename ?? get_bloginfo( 'name' ),
 		'comment_content' => $comment_content,
 		'comment_meta' => [
 			'flags' => $flags,
 		],
+		'user_id' => $comment_author->ID ?? 0,
 	] );
 }
 
