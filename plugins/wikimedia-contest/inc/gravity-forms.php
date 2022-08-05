@@ -74,7 +74,7 @@ function enqueue_form_scripts() {
  * save its field ID as a variable for use in targeting the field.
  *
  * @param Form $form The form being rendered.
- * @return Form
+ * @return Form (unchanged)
  */
 function identify_audio_meta_field( $form ) {
 	$field = current( wp_list_filter( $form['fields'], [ 'label' => 'audio_file_meta' ] ) );
@@ -99,23 +99,17 @@ function identify_audio_meta_field( $form ) {
 function handle_entry_submission( $entry, $form ) {
 	$formatted_entry = process_entry_fields( $entry, $form );
 
-	$audio_file_meta_raw = json_decode( $formatted_entry['audio_file_meta'] ?? '', true );
+	// Sanitize the audio file meta field.
+	$audio_file_meta = sanitize_audio_file_meta_field( $formatted_entry['audio_file_meta'] ?? '' );
 
-	// Define allowed field values for audio file meta array.
-	$audio_meta_allowed_values = [
-		'name' => 'sanitize_text_field',
-		'type' => 'sanitize_text_field',
-		'size' => 'absint',
-		'sampleRate' => 'absint',
-		'numberOfChannels' => 'absint',
-		'duration' => 'floatval',
-	];
-	$audio_file_meta = [];
-	foreach ( $audio_meta_allowed_values as $key => $sanitize_function ) {
-		if ( isset( $audio_file_meta_raw[ $key ] ) ) {
-			$audio_file_meta[ $key ] = call_user_func( $sanitize_function, $audio_file_meta_raw[ $key ] );
-		}
-	}
+	// For fields that contain an "other" option, merge that option into the list.
+	$submitter_gender = ( $formatted_entry['submitter_gender'] === 'other' ) ?
+	   $formatted_entry['submitter_gender_other'] :
+	   $formatted_entry['submitter_gender'] ?? '';
+
+	$submitter_country = ( $formatted_entry['submitter_country'] === 'other' ) ?
+	   $formatted_entry['submitter_country_other'] :
+	   $formatted_entry['submitter_country'] ?? '';
 
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );
@@ -134,6 +128,7 @@ function handle_entry_submission( $entry, $form ) {
 					'contributor_6',
 					'contributor_7',
 					'contributor_8',
+					'contributor_9',
 				] )
 			)
 		)
@@ -157,20 +152,51 @@ function handle_entry_submission( $entry, $form ) {
 			'unique_code'             => $submission_unique_code,
 			'submitter_name'          => $formatted_entry['submitter_name'] ?? '',
 			'submitter_email'         => $formatted_entry['submitter_email'] ?? '',
-			'submitter_country'       => $formatted_entry['submitter_country'] ?? '',
 			'submitter_wiki_user'     => $formatted_entry['submitter_wiki_user'] ?? '',
 			'submitter_phone'         => $formatted_entry['submitter_phone'] ?? '',
-			'submitter_pronouns'      => $formatted_entry['submitter_pronouns'] ?? '',
-			'explanation_creation'    => $formatted_entry['explanation_creation'] ?? '',
-			'explanation_inspiration' => $formatted_entry['explanation_inspiration'] ?? '',
+			'submitter_country'       => $submitter_country,
+			'submitter_gender'        => $submitter_gender,
 			'creation_process'        => $creation_process,
 			'contributing_authors'    => $contributing_authors,
+			'explanation_creation'    => $formatted_entry['explanation_creation'] ?? '',
+			'explanation_inspiration' => $formatted_entry['explanation_inspiration'] ?? '',
 			'audio_file'              => $formatted_entry['audio_file'] ?? null,
 			'audio_file_meta'         => $audio_file_meta,
 		],
 	];
 
 	$post_data = Network_Library\insert_submission( $submission_post );
+}
+
+/**
+ * Sanitize the values being saved for audio file meta.
+ *
+ * @param string $raw_input_value JSON-encoded string value submitted with form.
+ * @return [] Sanitized values for only allow-listed keys.
+ */
+function sanitize_audio_file_meta_field( $raw_input_value = '' ) {
+
+	$audio_file_meta_raw = json_decode( $raw_input_value, true );
+
+	// Define allowed field values for audio file meta array.
+	$audio_meta_allowed_values = [
+		'name' => 'sanitize_text_field',
+		'type' => 'sanitize_text_field',
+		'size' => 'absint',
+		'sampleRate' => 'absint',
+		'numberOfChannels' => 'absint',
+		'duration' => 'floatval',
+	];
+
+	$audio_file_meta = [];
+
+	foreach ( $audio_meta_allowed_values as $key => $sanitize_function ) {
+		if ( isset( $audio_file_meta_raw[ $key ] ) ) {
+			$audio_file_meta[ $key ] = call_user_func( $sanitize_function, $audio_file_meta_raw[ $key ] );
+		}
+	}
+
+	return $audio_file_meta;
 }
 
 /**
