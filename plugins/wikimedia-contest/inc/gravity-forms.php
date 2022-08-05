@@ -18,6 +18,7 @@ function bootstrap() {
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
+	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accesible_select_field', 10, 3 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 }
 
@@ -85,6 +86,51 @@ function identify_audio_meta_field( $form ) {
 	}
 
 	return $form;
+}
+
+/**
+ * Replace the GF select field with a custom dropdown that can be styled.
+ *
+ * @param string $field_content The input tag to be filtered.
+ * @param Field $field The field that this input tag applies to.
+ * @param string $value Current field value (or default).
+ * @return string Updated markup for this form field.
+ */
+function render_accesible_select_field( $field_input, $field, $value ) {
+	if ( $field->type !== 'select' ) {
+		return $field_content;
+	}
+
+	error_log( print_r( $field, true ) );
+
+	$id = sanitize_key( "input_{$field->id}" );
+	ob_start();
+?>
+	<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
+<div class="ginput_container">
+	<div class="gfield_label gfield_required" id="<?php echo esc_attr( $id ); ?>">
+		<?php echo esc_html( $field->label ); ?>
+	</div>
+	<div class="gfield_custom_select">
+	<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
+	</button>
+		<ul class="gfield_listbox" role="listbox" id="sex-list" tabindex="-1">
+			<?php
+			foreach ( $field->choices as $option ) {
+				echo '<li class="gfield_option' .
+					( $option['isSelected'] ? ' is-selected' : '' ) . '" ' .
+					'tabindex="0" ' .
+					'id="' . esc_attr( $option['value'] ) . '" ' .
+					'role="option">' .
+					esc_html( $option['text'] ) . '</li>';
+			}
+			?>
+		</ul>
+	</div>
+</div>
+<?php
+
+	return ob_get_clean();
 }
 
 /**
