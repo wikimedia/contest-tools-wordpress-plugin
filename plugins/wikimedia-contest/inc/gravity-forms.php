@@ -104,12 +104,12 @@ function handle_entry_submission( $entry, $form ) {
 
 	// For fields that contain an "other" option, merge that option into the list.
 	$submitter_gender = ( $formatted_entry['submitter_gender'] === 'other' ) ?
-	   $formatted_entry['submitter_gender_other'] :
-	   $formatted_entry['submitter_gender'] ?? '';
+		( $formatted_entry['submitter_gender_other'] ?? 'other' ) :
+		$formatted_entry['submitter_gender'] ?? '';
 
 	$submitter_country = ( $formatted_entry['submitter_country'] === 'other' ) ?
-	   $formatted_entry['submitter_country_other'] :
-	   $formatted_entry['submitter_country'] ?? '';
+		( $formatted_entry['submitter_country_other'] ?? 'other' ) :
+		$formatted_entry['submitter_country'] ?? '';
 
 	// Placeholder for submission unique code - TBD.
 	$submission_unique_code = md5( microtime( true ) );
