@@ -5,7 +5,7 @@
  * Version:     1.0.0
  * Author:      Human Made
  * Author URI:  https://github.com/humanmade
- * Text Domain: wikimedia-contest
+ * Text Domain: wikimedia-contest-admin
  * Domain Path: /languages
  *
  * @package wikimedia-contest
