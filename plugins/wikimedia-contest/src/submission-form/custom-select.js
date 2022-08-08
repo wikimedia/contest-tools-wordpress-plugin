@@ -70,10 +70,11 @@ const toggleListboxVisibility = ( { target } ) => {
 	listbox.setAttribute( 'tabindex', 1 );
 	listbox.classList.toggle( 'is-opened' );
 
+	// If an item is selected, focus that one; otherwise focus the first option.
 	if ( listbox.querySelector( '.gfield_option.is-selected' ) ) {
-		listbox.querySelector( '.gfield_option.is-selected' ).focus();
+		listbox.querySelector( '.gfield_option.is-selected button' ).focus();
 	} else {
-		listbox.querySelector( '.gfield_option' ).focus();
+		listbox.querySelector( '.gfield_option button' ).focus();
 	}
 };
 
@@ -84,11 +85,12 @@ const toggleListboxVisibility = ( { target } ) => {
  */
 const selectOption = ( { target } ) => {
 	const hiddenInput = getField( target, '.gfield_hidden_input' );
+	const option = target.closest( '.gfield_option' );
 	const options = getFields( target, '.gfield_option' );
-	const { value } = target.dataset;
+	const { value } = option.dataset;
 
 	options.forEach( opt => opt.classList.remove( 'is-selected' ) );
-	target.classList.add( 'is-selected' );
+	option.classList.add( 'is-selected' );
 
 	hiddenInput.value = value;
 	getField( target, '.gfield_toggle' ).innerHTML = value;
