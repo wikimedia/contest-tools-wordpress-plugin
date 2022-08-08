@@ -101,8 +101,6 @@ function render_accesible_select_field( $field_input, $field, $value ) {
 		return $field_content;
 	}
 
-	error_log( print_r( $field, true ) );
-
 	$id = sanitize_key( "input_{$field->id}" );
 	ob_start();
 ?>
