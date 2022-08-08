@@ -29,7 +29,6 @@ let fieldOptions = [];
  * Initialize this functionality.
  */
 const init = () => {
-	console.log( 'initializong...' );
 	customSelects = [ ...document.querySelectorAll( '.gfield_custom_select' ) ];
 	toggleButtons = [ ...document.querySelectorAll( '.gfield_custom_select .gfield_toggle' ) ];
 	fieldOptions = [ ...document.querySelectorAll( '.gfield_custom_select .gfield_option' ) ];
@@ -70,7 +69,12 @@ const toggleListboxVisibility = ( { target } ) => {
 	const listbox = getField( target, '.gfield_listbox' );
 	listbox.setAttribute( 'tabindex', 1 );
 	listbox.classList.toggle( 'is-opened' );
-	listbox.querySelector( '.gfield_option' ).focus();
+
+	if ( listbox.querySelector( '.gfield_option.is-selected' ) ) {
+		listbox.querySelector( '.gfield_option.is-selected' ).focus();
+	} else {
+		listbox.querySelector( '.gfield_option' ).focus();
+	}
 };
 
 /**
@@ -81,10 +85,14 @@ const toggleListboxVisibility = ( { target } ) => {
 const selectOption = ( { target } ) => {
 	const hiddenInput = getField( target, '.gfield_hidden_input' );
 	const options = getFields( target, '.gfield_option' );
+	const { value } = target.dataset;
 
-	hiddenInput.value = target.dataset.value;
 	options.forEach( opt => opt.classList.remove( 'is-selected' ) );
 	target.classList.add( 'is-selected' );
+
+	hiddenInput.value = value;
+	getField( target, '.gfield_toggle' ).innerHTML = value;
+	target.closest( '.gfield' ).classList.toggle( 'has-value', !! value );
 	closeListbox( target );
 };
 
