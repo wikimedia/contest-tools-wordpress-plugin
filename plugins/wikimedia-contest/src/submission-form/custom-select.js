@@ -93,7 +93,7 @@ const selectOption = ( { target } ) => {
 	option.classList.add( 'is-selected' );
 
 	hiddenInput.value = value;
-	getField( target, '.gfield_toggle' ).innerHTML = value;
+	getField( target, '.gfield_current_value' ).innerHTML = value;
 	target.closest( '.gfield' ).classList.toggle( 'has-value', !! value );
 	closeListbox( target );
 };
