@@ -98,37 +98,37 @@ function identify_audio_meta_field( $form ) {
  */
 function render_accessible_select_field( $field_input, $field, $value ) {
 	if ( $field->type !== 'select' ) {
-		return $field_content;
+		return $field_input;
 	}
 
 	$id = sanitize_key( "input_{$field->id}" );
 	ob_start();
-?>
-<div class="ginput_container">
-	<div class="gfield_label gfield_required" id="<?php echo esc_attr( $id ); ?>">
-		<?php echo esc_html( $field->label ); ?>
+	?>
+	<div class="ginput_container">
+		<div class="gfield_label gfield_required" id="<?php echo esc_attr( $id ); ?>">
+			<?php echo esc_html( $field->label ); ?>
+		</div>
+		<div class="gfield_custom_select">
+		<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
+			<div class="gfield_current_value"><?php echo esc_html( $value ) ; ?></div>
+			<?php wmf_show_icon( 'down' ); ?>
+		</button>
+			<ul class="gfield_listbox" role="listbox" id="<?php echo esc_attr( "{$id}_list" ); ?>" tabindex="-1">
+				<?php
+				foreach ( $field->choices as $option ) {
+					echo '<li class="gfield_option' .
+						( $option['isSelected'] ? ' is-selected' : '' ) . '" ' .
+						'data-value="' . esc_attr( $option['value'] ) . '" ' .
+						'role="option">' .
+						'<button type="button">' .  esc_html( $option['text'] ) . '</button>' .
+						'</li>';
+				}
+				?>
+			</ul>
+			<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
+		</div>
 	</div>
-	<div class="gfield_custom_select">
-	<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
-		<div class="gfield_current_value"><?php echo esc_html( $value ) ; ?></div>
-		<?php wmf_show_icon( 'down' ); ?>
-	</button>
-		<ul class="gfield_listbox" role="listbox" id="<?php echo esc_attr( "{$id}_list" ); ?>" tabindex="-1">
-			<?php
-			foreach ( $field->choices as $option ) {
-				echo '<li class="gfield_option' .
-					( $option['isSelected'] ? ' is-selected' : '' ) . '" ' .
-					'data-value="' . esc_attr( $option['value'] ) . '" ' .
-					'role="option">' .
-					'<button type="button">' .  esc_html( $option['text'] ) . '</button>' .
-					'</li>';
-			}
-			?>
-		</ul>
-		<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
-	</div>
-</div>
-<?php
+	<?php
 
 	return ob_get_clean();
 }
