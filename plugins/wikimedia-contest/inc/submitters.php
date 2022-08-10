@@ -23,6 +23,7 @@ function bootstrap() {
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\record_submitter_email' );
 	add_action( 'wp_ajax_check_email_address', __NAMESPACE__ . '\\ajax_check_email_address' );
 	add_action( 'wp_ajax_nopriv_check_email_address', __NAMESPACE__ . '\\ajax_check_email_address' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\add_email_reset_page' );
 }
 
 /**
@@ -47,10 +48,11 @@ function identify_submitter_email_field( $form ) {
 
 	return $form;
 }
+
 /**
  * Record the submitter email address so it can be used to validate future submissions.
  *
- * @param WP_Post $submission_post
+ * @param [] $submission_post Post data as saved.
  */
 function record_submitter_email( $submission_post ) {
 	$used_email_addresses = get_site_option( OPTION_NAME );
@@ -99,4 +101,108 @@ function is_email_used( $email_address ) {
 	$used_email_addresses = get_site_option( OPTION_NAME, [] );
 
 	return in_array( $email_address, $used_email_addresses, true );
+}
+
+/**
+ * Add a menu page for administrators to reset used email addresses.
+ */
+function add_email_reset_page() {
+	add_submenu_page(
+		'edit.php?post_type=submission',
+		esc_html__( 'Submitter email addresses', 'wikimedia-contest-admin' ),
+		esc_html__( 'Submitters', 'wikimedia-contest-admin' ),
+		'manage_options',
+		'submitter-emails',
+		__NAMESPACE__ . '\\render_submitter_emails_page'
+	);
+
+	add_allowed_options( [ 'options' => [ OPTION_NAME ] ] );
+}
+
+/**
+ * Render the admin page to manage used email addresses.
+ */
+function render_submitter_emails_page() {
+	$used_email_addresses = get_site_option( OPTION_NAME, [] );
+
+	// The form submits to the same page, so handle changes here.
+	if ( ! empty( $_REQUEST['update_submitter_emails'] ) ) {
+		handle_admin_list_updates();
+	}
+
+	echo '<div class="wrap">';
+
+	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Submitter Email Addresses', 'wikimedia-contest-admin' ) . '</h1>';
+
+	if ( $used_email_addresses ) {
+
+		?>
+		<form action="">
+			<?php wp_nonce_field( 'manage_submitter_emails' ); ?>
+			<input type="hidden" name="post_type" value="submission" />
+			<input type="hidden" name="page" value="submitter-emails" />
+			<input type="hidden" name="update_submitter_emails" value="true" />
+
+			<ul>
+				<?php
+				foreach ( $used_email_addresses as $email_address ) {
+					?>
+					<li>
+						<label>
+							<input
+								type="checkbox"
+								name="<?php echo OPTION_NAME; ?>[]"
+								value="<?php echo esc_attr( $email_address ); ?>"
+								<?php checked( is_email_used( $email_address ) ); ?>
+							>
+							<?php echo esc_html( $email_address ); ?>
+						</label>
+					</li>
+					<?php
+				}
+				?>
+			</ul>
+
+			<input type="submit" class="button button-primary" value="<?php echo esc_attr__( 'Save Changes' ); ?>" />
+		</form>
+		<?php
+
+	} else {
+		echo '<p>' . esc_html__(
+			'There are no email addresses recorded as having submitted their contest entry.',
+			'wikimedia-contest-admin'
+		) . '</p>';
+	}
+}
+
+/**
+ * Update the used emails option in response to an admin form submission.
+ */
+function handle_admin_list_updates() {
+
+	// Ensure that user is submitting this form from the admin page.
+	check_admin_referer( 'manage_submitter_emails' );
+
+	if ( ! current_user_can( 'publish_submissions' ) ) {
+		echo 'nuh-uh!';
+		return;
+	}
+
+	$email_addresses = $_REQUEST[ OPTION_NAME ];
+
+	$updated = update_site_option(
+		OPTION_NAME,
+		array_filter(
+			array_map(
+				'is_email',
+				$email_addresses
+			)
+		)
+	);
+
+	if ( $updated ) {
+		echo '<div class="notice notice-warning is-dismissable"><p>' .
+			esc_html__( 'Updated list of used email addresses saved.', 'wikimedia-contest-admin' ) .
+			'</p></div>';
+	}
 }
