@@ -6,4 +6,6 @@
 
 require( './submission-form/custom-select' );
 
+require( './submission-form/email-field-validator' );
+
 require( './submission-form/sound-validator' );
