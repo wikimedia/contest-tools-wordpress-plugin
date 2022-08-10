@@ -42,10 +42,23 @@ const checkEmailAddress = ( { target } ) => {
 	checkRequest
 		.then( response => response.json() )
 		.then( ( { success, data } ) => {
-			const field = target.closest( '.gfield' );
-			field.classList.toggle( 'gfield_error', ! success );
-			field.querySelector( '.gfield_validation_message' ).innerHTML = data || '';
+
+			const field = target.closest( '.gfield' ),
+				wrap = target.closest( '.gform_wrapper' );
+
+			if ( ! field.querySelector( '.gfield_validation_message' ) ) {
+				target.insertAdjacentHTML( '<div class="gfield_description validation_message gfield_validation_message"></div>' );
+			}
+			const validationMessage =  field.querySelector( '.gfield_validation_message' );
+
 			target.toggleAttribute( 'aria-invalid', ! success );
+			field.classList.toggle( 'gfield_error', ! success );
+
+			// Mark the form as in error if this or any other field are showing errors.
+			wrap.classList.toggle( 'gform_validation_error', ! success || wrap.querySelector( '.gfield_error' ) );
+
+			// Add a validation message to the form field.
+			validationMessage.innerHTML = data || '';
 		} )
 		/* eslint-disable no-console */
 		.catch( console.error );

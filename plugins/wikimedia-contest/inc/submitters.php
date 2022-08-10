@@ -24,6 +24,7 @@ function bootstrap() {
 	add_action( 'wp_ajax_check_email_address', __NAMESPACE__ . '\\ajax_check_email_address' );
 	add_action( 'wp_ajax_nopriv_check_email_address', __NAMESPACE__ . '\\ajax_check_email_address' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\add_email_reset_page' );
+	add_filter( 'gform_field_validation', __NAMESPACE__ . '\\validate_email_not_used', 10, 4 );
 }
 
 /**
@@ -205,4 +206,28 @@ function handle_admin_list_updates() {
 			esc_html__( 'Updated list of used email addresses saved.', 'wikimedia-contest-admin' ) .
 			'</p></div>';
 	}
+}
+
+/**
+ * Server-side validation for email form field.
+ *
+ * Marks the email field as invalid on form submission is address is already
+ * used.
+ *
+ * @param [] $result Validation result being filtered.
+ * @param string $value User input for the field.
+ * @param Form $form Form object.
+ * @param Field $field Current field object.
+ */
+function validate_email_not_used( $result, $value, $form, $field ) {
+	if ( $field->adminLabel !== 'submitter_email' ) {
+		return $result;
+	}
+
+	if ( is_email_used( $value ) ) {
+		$result['is_valid'] = false;
+		$result['message'] = __( 'This email address has already been used for a submission', 'wikimedia-contest-admin' );
+	}
+
+	return $result;
 }
