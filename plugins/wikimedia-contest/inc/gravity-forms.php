@@ -97,7 +97,7 @@ function identify_audio_meta_field( $form ) {
  * @return string Updated markup for this form field.
  */
 function render_accessible_select_field( $field_input, $field, $value ) {
-	if ( $field->type !== 'select' ) {
+	if ( $field->type !== 'select' || is_admin() ) {
 		return $field_input;
 	}
 
