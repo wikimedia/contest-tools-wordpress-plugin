@@ -105,9 +105,6 @@ function render_accessible_select_field( $field_input, $field, $value ) {
 	ob_start();
 	?>
 	<div class="ginput_container">
-		<div class="gfield_label gfield_required" id="<?php echo esc_attr( $id ); ?>">
-			<?php echo esc_html( $field->label ); ?>
-		</div>
 		<div class="gfield_custom_select">
 		<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
 			<div class="gfield_current_value"><?php echo esc_html( $value ) ; ?></div>
