@@ -124,3 +124,51 @@ function transition_post_status( $new_status, $old_status, $post ) {
 
 	restore_current_blog();
 }
+
+/**
+ * Count posts based on submitter_email meta key.
+ *
+ * @param string $submitter_email The submitter email.
+ * @return int|null The number of posts or null.
+ */
+function count_posts_by_submitter_email_meta( $submitter_email ) {
+	$main_site_id = get_main_site_id();
+	$current_site_id = get_current_blog_id();
+	switch_to_blog( $main_site_id );
+
+	$search_args = [
+		'post_type' => 'submission',
+		'post_status' => 'any',
+		'meta_query' => [
+			'relation' => 'AND',
+			[
+				'key' => 'submitter_email',
+				'value' => $submitter_email
+			],
+		]
+	];
+	$posts = new \WP_Query( $search_args );
+	restore_current_blog( $current_site_id );
+
+	return $posts->post_count ?? null;
+}
+
+/**
+ * Get last submission post.
+ *
+ * @return WP_Post|null The last submission post or null.
+ */
+function get_last_submission_post() {
+	$main_site_id = get_main_site_id();
+	$current_site_id = get_current_blog_id();
+	switch_to_blog( $main_site_id );
+
+	$args = [
+		'post_type' =>'submission',
+		'posts_per_page' => 1
+	];
+	$recent_posts = wp_get_recent_posts( $args, OBJECT );
+	restore_current_blog( $current_site_id );
+
+	return $recent_posts[0];
+}

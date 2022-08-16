@@ -20,6 +20,171 @@ function bootstrap() {
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
 	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 3 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
+	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4);
+	add_filter( 'gform_replace_merge_tags', __NAMESPACE__ . '\\replace_merge_tags', 10, 7 );
+	add_filter( 'render_block', __NAMESPACE__ . '\\replace_submission_count_confirmation_page', 10, 2 );
+}
+
+/**
+ *	Manually replace submission count merge tag on confirmation page.
+ *
+ * @param string $block_content The rendered block.
+ * @param array  $block         The block being rendered.
+ * @return string The rendered block content
+  */
+function replace_submission_count_confirmation_page( $block_content, $block ) : string {
+
+	if ( 'core/paragraph' !== $block['blockName'] ) {
+		return $block_content;
+	}
+
+	if ( empty(  $block_content ) ) {
+		return $block_content;
+	}
+
+	if ( strpos( $block_content, '{user_submission_count}' ) === false ) {
+		return $block_content;
+	}
+
+	if ( ! is_page() ) {
+		return $block_content;
+	}
+
+	// Check if current page ID matches any of GF confirmation pages.
+	$current_page_id_found = false;
+	$forms = \GFAPI::get_forms();
+	foreach ( $forms as $form ) {
+		$confirmations = $form['confirmations'];
+		foreach ( $confirmations as $confirmation ) {
+			if ( $confirmation['type'] === 'page' && absint( $confirmation['pageId'] ) === get_the_ID() ) {
+				$current_page_id_found = true;
+				break;
+			}
+		}
+	}
+	if ( ! $current_page_id_found ) {
+		return $block_content;
+	}
+
+	// Last submission post
+	$last_submission_post = \Wikimedia_Contest\Network_Library\get_last_submission_post();
+	if ( ! $last_submission_post ) {
+		return $block_content;
+	}
+
+	// Last submission post meta
+	$submission_post_meta = get_post_meta( $last_submission_post->ID ) ?? [];
+	if ( empty( $submission_post_meta ) ) {
+		return $block_content;
+	}
+
+	// Counting posts based on submitter_email meta key
+	$number_of_posts = \Wikimedia_Contest\Network_Library\count_posts_by_submitter_email_meta( $submission_post_meta['submitter_email'][0] );
+	if ( ! $number_of_posts ) {
+		return $block_content;
+	}
+
+	$block_content = str_replace( '{user_submission_count}', $number_of_posts, $block_content );
+
+	return $block_content;
+}
+
+/**
+ * Add custom merge tags.
+ *
+ * @param array $merge_tags Merge tags.
+ * @param int $form_id Form ID.
+ * @param array $fields Form Fields.
+ * @param int $element_id Element ID.
+ *
+ * @return array
+ */
+function custom_merge_tags( $merge_tags, $form_id, $fields, $element_id ) : array {
+	$merge_tags[] = [ 'label' => 'User submission count', 'tag' => '{user_submission_count}' ];
+	$merge_tags[] = [ 'label' => 'Formatted uploaded audio info', 'tag' => '{formatted_audio_info}' ];
+	$merge_tags[] = [ 'label' => 'Submission unique ID', 'tag' => '{submission_unique_id}' ];
+	return $merge_tags;
+}
+
+/**
+ * Replace custom merge tags.
+ *
+ * @param string $text Text.
+ * @param array $form Form.
+ * @param array $entry Entry.
+ * @param bool $url_encode URL encode.
+ * @param bool $esc_html Escape HTML.
+ * @param bool $nl2br Newline to break.
+ * @param string $format Format.
+ *
+ * @return string Text
+ */
+function replace_merge_tags( $text, $form, $entry, $url_encode, $esc_html, $nl2br, $format ) : string {
+
+	if ( $entry ) {
+		$tag_list = [
+			'{user_submission_count}',
+			'{formatted_audio_info}',
+			'{submission_unique_id}',
+		];
+
+		// Check if the text contains any of the merge tags.
+		$has_tag = false;
+		foreach ( $tag_list as $tag ) {
+			$has_tag = ( strpos( $text, $tag ) !== false ) ? true : $has_tag;
+		}
+		if ( ! $has_tag ) {
+			return $text;
+		}
+
+		$merge_tags = [];
+
+		// Getting last submission post.
+		$last_submission_post = \Wikimedia_Contest\Network_Library\get_last_submission_post();
+		if ( ! $last_submission_post ) {
+			return $text;
+		}
+
+		// Getting last submission post meta.
+		$submission_post_meta = get_post_meta( $last_submission_post->ID ) ?? [];
+		if ( empty( $submission_post_meta ) ) {
+			return $text;
+		}
+
+		// Counting posts based on submitter_email meta key.
+		$number_of_posts = \Wikimedia_Contest\Network_Library\count_posts_by_submitter_email_meta( $submission_post_meta['submitter_email'][0] );
+		if ( ! $number_of_posts ) { // It should have one, at least.
+			return $text;
+		}
+
+		// Formatting audio meta data.
+		$audio_file_meta = unserialize( $submission_post_meta['audio_file_meta'][0] );
+		$audio_size_bytes = $audio_file_meta['size'];
+		$size = [ 'B','KB','MB' ];
+		$factor = floor( ( strlen( $audio_size_bytes ) - 1 ) / 3 );
+		$audio_size = sprintf( "%.2f", $audio_size_bytes / pow( 1024, $factor ) ) . $size[$factor];
+		$audio_info = sprintf(
+			'%s (%s %s) - %s seconds / %s ch @ %sHz',
+			$audio_file_meta['name'],
+			$audio_size,
+			$audio_file_meta['type'],
+			round( $audio_file_meta['duration'], 2 ),
+			$audio_file_meta['numberOfChannels'],
+			$audio_file_meta['sampleRate'],
+		);
+
+		$merge_tags = [
+			'{submission_unique_id}'  => $submission_post_meta['unique_code'][0],
+			'{user_submission_count}' => $number_of_posts,
+			'{formatted_audio_info}'  => $audio_info,
+		];
+
+		foreach ( $merge_tags as $tag => $value ) {
+			$text = str_replace( $tag, $value, $text );
+		}
+	}
+
+	return $text;
 }
 
 /**
@@ -289,3 +454,4 @@ function process_entry_fields( $entry, $form ) {
 
 	return $formatted_entry;
 }
+
