@@ -18,7 +18,7 @@ function bootstrap() {
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
-	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 3 );
+	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 5 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 }
 
@@ -94,17 +94,22 @@ function identify_audio_meta_field( $form ) {
  * @param string $field_input The input tag to be filtered.
  * @param Field $field The field that this input tag applies to.
  * @param string $value Current field value (or default).
+ * @param int $_ Current entry ID (will be 0 on front end).
+ * @param int $form_id Current form ID.
  * @return string Updated markup for this form field.
  */
-function render_accessible_select_field( $field_input, $field, $value ) {
+function render_accessible_select_field( $field_input, $field, $value, $_, $form_id ) {
 	if ( $field->type !== 'select' || is_admin() ) {
 		return $field_input;
 	}
 
-	$id = sanitize_key( "input_{$field->id}" );
+	$id = sanitize_key( "input_{$form_id}_{$field->id}" );
 	ob_start();
 	?>
 	<div class="ginput_container">
+		<div class="gfield_label gfield_required" for="<?php echo esc_attr( $id ); ?>">
+			<?php echo esc_html( $field->label ); ?>
+		</div>
 		<div class="gfield_custom_select">
 		<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
 			<div class="gfield_current_value"><?php echo esc_html( $value ) ; ?></div>
@@ -122,7 +127,7 @@ function render_accessible_select_field( $field_input, $field, $value ) {
 				}
 				?>
 			</ul>
-			<input type="hidden" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
+			<input type="hidden" id="<?php echo esc_attr( $id ); ?>" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
 		</div>
 	</div>
 	<?php
