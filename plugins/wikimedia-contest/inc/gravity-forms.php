@@ -26,11 +26,12 @@ function bootstrap() {
 }
 
 /**
- *	Manually replace submission count merge tag on confirmation page.
+ * Manually replace submission count merge tag on confirmation page.
  *
  * @param string $block_content The rendered block.
  * @param array  $block         The block being rendered.
- * @return string The rendered block content
+ *
+ * @return string The rendered block content.
   */
 function replace_submission_count_confirmation_page( $block_content, $block ) : string {
 
@@ -66,19 +67,19 @@ function replace_submission_count_confirmation_page( $block_content, $block ) : 
 		return $block_content;
 	}
 
-	// Last submission post
+	// Last submission post.
 	$last_submission_post = \Wikimedia_Contest\Network_Library\get_last_submission_post();
 	if ( ! $last_submission_post ) {
 		return $block_content;
 	}
 
-	// Last submission post meta
+	// Last submission post meta.
 	$submission_post_meta = get_post_meta( $last_submission_post->ID ) ?? [];
 	if ( empty( $submission_post_meta ) ) {
 		return $block_content;
 	}
 
-	// Counting posts based on submitter_email meta key
+	// Counting posts based on submitter_email meta key.
 	$number_of_posts = \Wikimedia_Contest\Network_Library\count_posts_by_submitter_email_meta( $submission_post_meta['submitter_email'][0] );
 	if ( ! $number_of_posts ) {
 		return $block_content;
