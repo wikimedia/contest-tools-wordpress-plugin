@@ -9,6 +9,7 @@
 
 namespace Wikimedia_Contest;
 
+use Wikimedia_Contest\Screening_Results;
 use WP_Posts_List_Table;
 
 /**
@@ -151,7 +152,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		}
 
 		$actions = [
-			'screen' => '<a href="' . get_edit_post_link( $item->ID ) . '">' .
+			'screen' => '<a href="' . Screening_Results\get_screening_link( $item->ID ) . '">' .
 				esc_html__( 'Screen sound logo submission' ) .
 				'</a>',
 		];

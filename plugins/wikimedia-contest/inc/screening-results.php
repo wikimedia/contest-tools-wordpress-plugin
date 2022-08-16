@@ -40,7 +40,7 @@ const COMMENT_AGENT = 'screening_result';
 function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_screener_role' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
-	add_action( 'admin_menu', __NAMESPACE__ . '\\register_screening_queue_menu_page' );
+	add_action( 'admin_menu', __NAMESPACE__ . '\\register_screening_queue_menu_pages' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
@@ -76,7 +76,7 @@ function register_screener_role() {
  * If the user can edit submissions, this page will be a submenu page under the
  * Submissions header. Otherwise, it's a top-level menu item.
  */
-function register_screening_queue_menu_page() {
+function register_screening_queue_menu_pages() {
 
 	if ( current_user_can( 'edit_submissions' ) ) {
 		add_submenu_page(
@@ -88,6 +88,15 @@ function register_screening_queue_menu_page() {
 			__NAMESPACE__ . '\\render_screening_queue',
 			5
 		);
+		add_submenu_page(
+			'edit.php?post_type=submission',
+			__( 'Screen Submission', 'wikimedia-contest-admin' ),
+			__( 'Screen Submission', 'wikimedia-contest-admin' ),
+			'screen_submissions',
+			'screen-submission',
+			__NAMESPACE__ . '\\render_screening_interface',
+			5
+		);
 	} else {
 		add_menu_page(
 			__( 'Screening Queue', 'wikimedia-contest-admin' ),
@@ -96,6 +105,15 @@ function register_screening_queue_menu_page() {
 			'screening-queue',
 			__NAMESPACE__ . '\\render_screening_queue',
 			'dashicons-yes-alt',
+			5
+		);
+		add_submenu_page(
+			'screening-queue',
+			__( 'Screen Submission', 'wikimedia-contest-admin' ),
+			__( 'Screen Submission', 'wikimedia-contest-admin' ),
+			'screen_submissions',
+			'screen-submission',
+			__NAMESPACE__ . '\\render_screening_interface',
 			5
 		);
 	}
@@ -116,6 +134,36 @@ function render_screening_queue() {
 	$list_table->display();
 
 	echo '</div>';
+}
+
+/**
+ * Render the Screening interface.
+ */
+function render_screening_interface() {
+	$post_id = $_REQUEST['post'] ?? null;
+
+	if ( ! $post_id ) {
+		wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
+	}
+
+	require_once dirname( __DIR__ ) . '/templates/screening-interface.php';
+}
+
+/**
+ * Get a link to edit a submission post.
+ *
+ * @param int $submission_id Submission ID.
+ * @return string Screening interface URL for this post.
+ */
+function get_screening_link( $submission_id ) {
+	return add_query_arg(
+		[
+			'post_type' => 'submission',
+			'page' => 'screen-submission',
+			'post' => $submission_id,
+		],
+		admin_url( 'edit.php' )
+	);
 }
 
 /**
@@ -140,6 +188,32 @@ function get_available_flags() {
 		'sound_too_short' => __( '< 1s duration', 'wikimedia-contest-admin' ),
 		'sound_too_long' => __( '> 4s duration', 'wikimedia-contest-admin' ),
 		'bitrate_too_low' => __( 'Bitrate too low', 'wikimedia-contest-admin' ),
+	];
+}
+
+/**
+ * Define moderation flags available in screeners' interface.
+ *
+ * @return string[] Key-value array of screening flags to hu/**
+ */
+function get_moderation_flags() {
+	// Flags which are set by screeners.
+	return [
+		'sound_too_long' => __( 'More than five seconds', 'wikimedia-contest-admin' ),
+		'sound_too_short' => __( 'Less than one second', 'wikimedia-contest-admin' ),
+		'single_layer' => __( 'Single layer', 'wikimedia-contest-admin' ),
+		'includes_spoken_words' => __( 'Includes spoken words ', 'wikimedia-contest-admin' ),
+		'unacceptable_file_type' => __( 'Unacceptable file type (OGG, WAV, MP3)', 'wikimedia-contest-admin' ),
+		'unacceptable_quality' => __( 'Unacceptable quality', 'wikimedia-contest-admin' ),
+		'suspect_copyright_infringment' => __( 'Suspected of copyright infringement', 'wikimedia-contest-admin' ),
+		'suspect_license_infringement' => __( 'Suspected of license infringement', 'wikimedia-contest-admin' ),
+		'vandalism' => __( 'Vandalism', 'wikimedia-contest-admin' ),
+		'related_violence' => __( 'Related to violence', 'wikimedia-contest-admin' ),
+		'related_gambling' => __( 'Related to gambling', 'wikimedia-contest-admin' ),
+		'related_crime' => __( 'Related to crime', 'wikimedia-contest-admin' ),
+		'related_sexual_behavior' => __( 'Related to sexual behaviour', 'wikimedia-contest-admin' ),
+		'threatening_behavior' => __( 'Threatening behavior', 'wikimedia-contest-admin' ),
+		'related_drugs' => __( 'Related to illicit drugs', 'wikimedia-contest-admin' ),
 	];
 }
 
