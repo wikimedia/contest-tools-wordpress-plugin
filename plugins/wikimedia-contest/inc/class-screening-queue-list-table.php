@@ -200,11 +200,15 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function column_col_screening_results( $item ) {
 		$screening_results = Screening_Results\get_screening_results( $item->ID );
 		$available_flags = Screening_Results\get_available_flags();
+		$moderation_flags = Screening_Results\get_moderation_flags();
 
 		if ( $screening_results['flags'] ) {
 			foreach ( $screening_results['flags'] as $flag ) {
 				if ( isset( $available_flags[ $flag ] ) ) {
-					echo '<span class="screening-flag">' . esc_html( $available_flags[ $flag ] ) . '</span>';
+					echo '<span class="moderation-flag moderation-flag--yellow">' . esc_html( $available_flags[ $flag ] ) . '</span>';
+				}
+				if ( isset( $moderation_flags[ $flag ] ) ) {
+					echo '<span class="moderation-flag moderation-flag--red">' . esc_html( $moderation_flags[ $flag ] ) . '</span>';
 				}
 			}
 		}

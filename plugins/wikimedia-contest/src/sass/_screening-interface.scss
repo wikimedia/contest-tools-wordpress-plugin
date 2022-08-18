@@ -1,0 +1,52 @@
+.sound {
+	display: flex;
+	flex-flow: row nowrap;
+	border-bottom: 1px solid #ddd;
+	justify-content: start;
+
+	&__col {
+		margin: 0 40px 40px 0;
+		flex-basis: 30%;
+	}
+
+	&-details-textarea {
+		background-color: #f6f6f6;
+		padding: 0.5em 1em;
+
+		p {
+			font-size: 15px;
+		}
+	}
+}
+
+.moderation {
+	display: flex;
+	flex-flow: row nowrap;
+
+	&__col {
+		margin-right: 40px;
+
+		&--other {
+			display: flex;
+			flex-flow: column;
+			align-items: start;
+			justify-content: space-between;
+		}
+	}
+}
+
+.moderation-flag {
+	font-size: 13px;
+	font-weight: 600;
+	display: inline-block;
+	padding: 6px 9px;
+	margin: 0 10px 10px 0;
+
+	&--yellow {
+		background: yellow;
+	}
+
+	&--red {
+		background: red;
+	}
+}

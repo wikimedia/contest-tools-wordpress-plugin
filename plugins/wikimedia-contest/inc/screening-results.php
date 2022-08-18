@@ -146,6 +146,10 @@ function render_screening_interface() {
 		wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
 	}
 
+	if ( ! empty( $_POST['_screen_submission_nonce'] ) ) {
+		handle_screening_results();
+	}
+
 	require_once dirname( __DIR__ ) . '/templates/screening-interface.php';
 }
 
@@ -164,6 +168,25 @@ function get_screening_link( $submission_id ) {
 		],
 		admin_url( 'edit.php' )
 	);
+}
+
+/**
+ * Handle user-submitted screening results.
+ */
+function handle_screening_results() {
+	check_admin_referer( 'screen-submission', '_screen_submission_nonce' );
+
+	$post_id = $_REQUEST['post'];
+
+	if ( ! current_user_can( 'screen-submissions' ) ) {
+		return;
+	}
+
+	$flags = array_intersect_key( $_POST['moderation-flags'] ?? [], get_moderation_flags() );
+	$is_invalid = ! empty( $_POST['moderation-invalid'] ) || count( $flags );
+	$other = $_POST['moderation-other'];
+
+	add_screening_comment( $post_id, $is_invalid ? 'ineligible' : 'eligible', array_keys( $flags ) );
 }
 
 /**
@@ -226,7 +249,10 @@ function get_moderation_flags() {
  */
 function add_screening_comment( int $submission_id, $status = 'none', array $flags = [] ) {
 	// Validate the flags specified against the allowed list.
-	$allowed_flags = get_available_flags();
+	$allowed_flags = array_merge(
+		get_available_flags(),
+		get_moderation_flags()
+	);
 
 	$flags = array_intersect( $flags, array_keys( $allowed_flags ) );
 
