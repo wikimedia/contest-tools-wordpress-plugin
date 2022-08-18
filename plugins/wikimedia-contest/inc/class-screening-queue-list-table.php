@@ -29,10 +29,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		parent::__construct( [
 			'singular' => __( 'Sound Logo Entry', 'wikimedia-contest-admin' ),
 			'plural' => __( 'Sound Logo Entries', 'wikimedia-contest-admin' ),
-			'screen' => [
-				'base' => 'edit-submission',
-				'post_type' => 'submission',
-			],
+			'screen' => 'edit-submission-screening-queue',
 			'ajax' => false,
 		] );
 	}
@@ -179,14 +176,14 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	/**
 	 * Render the submission date column.
 	 */
-	function column_col_submission_date() {
+	function column_col_submission_date( $item ) {
 		// Use core's date format strings for proper localization.
 		// phpcs:disable HM.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo sprintf(
 			__( '%1$s at %2$s' ),
-			get_the_time( __( 'Y/m/d' ), $post ),
-			get_the_time( __( 'g:i a' ), $post )
+			get_the_time( __( 'Y/m/d' ), $item ),
+			get_the_time( __( 'g:i a' ), $item )
 		);
 		// phpcs:enable HM.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
