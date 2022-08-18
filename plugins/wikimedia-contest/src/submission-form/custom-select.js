@@ -4,6 +4,8 @@
  * @package
  */
 
+const { gf_input_change } = window;
+
 /**
  * Cached DOM selectors to attach and remove functionality.
  *
@@ -94,6 +96,10 @@ const selectOption = ( { target } ) => {
 
 	hiddenInput.value = value;
 	getField( target, '.gfield_current_value' ).innerHTML = value;
+
+	/* eslint-disable no-unused-vars */
+	const [ id, formId, fieldId ] = hiddenInput.id.match( /input_([0-9]*)_([0-9]*)/ );
+	gf_input_change( hiddenInput, formId, fieldId );
 	target.closest( '.gfield' ).classList.toggle( 'has-value', !! value );
 	closeListbox( target );
 };
