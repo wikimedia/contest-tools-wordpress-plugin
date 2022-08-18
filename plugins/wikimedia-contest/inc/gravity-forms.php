@@ -104,6 +104,7 @@ function render_accessible_select_field( $field_input, $field, $value, $_, $form
 	}
 
 	$id = sanitize_key( "input_{$form_id}_{$field->id}" );
+	$field_name = sanitize_key( "input_{$field->id}" );
 	ob_start();
 	?>
 	<div class="ginput_container">
@@ -127,7 +128,7 @@ function render_accessible_select_field( $field_input, $field, $value, $_, $form
 				}
 				?>
 			</ul>
-			<input type="hidden" id="<?php echo esc_attr( $id ); ?>" class="gfield_hidden_input" name="<?php echo esc_attr( $id ); ?>" value="<?php echo esc_attr( $value ); ?>" >
+			<input type="hidden" id="<?php echo esc_attr( $id ); ?>" class="gfield_hidden_input" name="<?php echo esc_attr( $field_name ); ?>" value="<?php echo esc_attr( $value ); ?>" >
 		</div>
 	</div>
 	<?php
