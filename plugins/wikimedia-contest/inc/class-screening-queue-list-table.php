@@ -86,8 +86,8 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		// Add comment filters to only show posts user can screen.
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
 
-		// Set up WP_Query vars.
-		wp_edit_posts_query( [
+		// Set up global WP_Query vars.
+		query_posts( [
 			'post_type' => 'submission',
 			'post_status' => 'draft',
 			'per_page' => $per_page ?? 20,

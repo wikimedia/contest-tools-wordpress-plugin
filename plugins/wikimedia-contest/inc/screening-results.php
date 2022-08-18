@@ -187,6 +187,8 @@ function handle_screening_results() {
 	$other = $_POST['moderation-other'];
 
 	add_screening_comment( $post_id, $is_invalid ? 'ineligible' : 'eligible', array_keys( $flags ) );
+
+	wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
 }
 
 /**
