@@ -137,15 +137,9 @@ function count_posts_by_submitter_email_meta( $submitter_email ) {
 	switch_to_blog( $main_site_id );
 
 	$search_args = [
-		'post_type' => 'submission',
+		'post_type'   => 'submission',
 		'post_status' => 'any',
-		'meta_query' => [
-			'relation' => 'AND',
-			[
-				'key' => 'submitter_email',
-				'value' => $submitter_email
-			],
-		]
+		'meta_value'  => $submitter_email,
 	];
 	$posts = new \WP_Query( $search_args );
 	restore_current_blog( $current_site_id );
