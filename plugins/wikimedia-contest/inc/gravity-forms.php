@@ -72,8 +72,6 @@ function replace_merge_tags( $text, $form, $entry, $url_encode, $esc_html, $nl2b
 			return $text;
 		}
 
-		$merge_tags = [];
-
 		// Getting last submission post ID from entry metadata.
 		$last_submission_post_id = gform_get_meta( $entry['id'], 'submission_post_id' );
 		$last_submission_post = get_post( $last_submission_post_id );
@@ -280,7 +278,7 @@ function handle_entry_submission( $entry, $form ) {
 
 	// Generating a six-digit random number from 100000 to 999999 that's not yet used.
 	do {
-		$submission_unique_number = rand (100000, 999999);
+		$submission_unique_number = rand ( 100000, 999999 );
 		$existing_post = get_posts( [
 			'post_type' => 'submission',
 			'meta_key' => 'unique_number',
