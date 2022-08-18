@@ -248,8 +248,9 @@ function get_moderation_flags() {
  * @param int $submission_id Post ID of submission being screened.
  * @param string? $status Status recommended by screener ('eligible'/'ineligible'/null for no decision)
  * @param array $flags Flags to assign to post.
+ * @param bool $is_auto If this is the result of an automated check, and therefore shouldn't have a user ID.
  */
-function add_screening_comment( int $submission_id, $status = 'none', array $flags = [] ) {
+function add_screening_comment( int $submission_id, $status = 'none', array $flags = [], $is_auto = false ) {
 	// Validate the flags specified against the allowed list.
 	$allowed_flags = array_merge(
 		get_available_flags(),
@@ -258,7 +259,7 @@ function add_screening_comment( int $submission_id, $status = 'none', array $fla
 
 	$flags = array_intersect( $flags, array_keys( $allowed_flags ) );
 
-	$comment_author = wp_get_current_user();
+	$comment_author = $is_auto ? [] : wp_get_current_user();
 
 	$comment_content = wp_json_encode( [
 		'status' => $status,
@@ -364,7 +365,7 @@ function inserted_submission( $post_data, $post_id ) {
 	}
 
 	if ( $flags ) {
-		add_screening_comment( $post_id, null, $flags );
+		add_screening_comment( $post_id, null, $flags, true );
 	}
 }
 
