@@ -2,16 +2,16 @@
 /**
  * Logic for tracking contest entrants.
  *
- * Each contest entrant is only allowed to enter once, but there are a few
- * exceptions. When first submitting a contest entry, the user should be able to
- * enter three different submissions. And contest admins need a way to clear an
- * entrant's record, so that they can resubmit in case of technical
- * difficulties.
+ * Each contest entrant is only allowed to enter three submissions. And contest
+ * admins need a way to clear an entrant's record, so that they can resubmit in
+ * case of technical difficulties.
  *
  * @package wikimedia-contest;
  */
 
 namespace Wikimedia_Contest\Submitters;
+
+use Wikimedia_Contest\Network_Library;
 
 const OPTION_NAME = 'submitter_email_addresses';
 
@@ -53,16 +53,22 @@ function identify_submitter_email_field( $form ) {
 /**
  * Record the submitter email address so it can be used to validate future submissions.
  *
+ * In response to a new submission creation, this looks up the number of
+ * submissions the current user has entered. If it is 3 (or greater) the user's
+ * email address will be recorded in a network option as having entered their
+ * maximum number of submissions.
+ *
  * @param [] $submission_post Post data as saved.
  */
 function record_submitter_email( $submission_post ) {
-	$used_email_addresses = get_site_option( OPTION_NAME );
+	$submitter_email = $submission_post['meta_input']['submitter_email'];
 
-	if ( ! $used_email_addresses ) {
-		add_site_option( OPTION_NAME, [] );
-		$used_email_addresses = [];
+	// Don't record user until they've submitted at least 3 entries.
+	if ( Network_Library\count_posts_by_submitter_email_meta( $submitter_email ) < 3 ) {
+		return;
 	}
 
+	$used_email_addresses = get_site_option( OPTION_NAME ) ?: [];
 	$used_email_addresses[] = $submission_post['meta_input']['submitter_email'];
 
 	update_site_option( OPTION_NAME, array_filter( array_unique( $used_email_addresses ) ) );
@@ -85,21 +91,21 @@ function ajax_check_email_address() {
 	}
 
 	// Check if the email address has already been used.
-	if ( is_email_used( $email_address ) ) {
-		wp_send_json_error( __( 'That email address is already used.', 'wikimedia-contest' ), 403 );
+	if ( has_email_submitted_three_entries( $email_address ) ) {
+		wp_send_json_error( __( 'You have met the maximum number of submissions for this contest. Each contestant can submit up to 3 sound logos.', 'wikimedia-contest' ), 403 );
 	}
 
 	wp_send_json_success();
 }
 
 /**
- * Check if an email address is already used.
+ * Check if an email address has already made the maximum number of submissions.
  *
  * @param string $email_address Email to look up.
  * @return bool True if the email address has already been used.
  */
-function is_email_used( $email_address ) {
-	$used_email_addresses = get_site_option( OPTION_NAME, [] );
+function has_email_submitted_three_entries( $email_address ) {
+	$used_email_addresses = get_site_option( OPTION_NAME ) ?: [];
 
 	return in_array( $email_address, $used_email_addresses, true );
 }
@@ -154,7 +160,7 @@ function render_submitter_emails_page() {
 								type="checkbox"
 								name="<?php echo OPTION_NAME; ?>[]"
 								value="<?php echo esc_attr( $email_address ); ?>"
-								<?php checked( is_email_used( $email_address ) ); ?>
+								<?php checked( has_email_submitted_three_entries( $email_address ) ); ?>
 							>
 							<?php echo esc_html( $email_address ); ?>
 						</label>
@@ -224,9 +230,9 @@ function validate_email_not_used( $result, $value, $form, $field ) {
 		return $result;
 	}
 
-	if ( is_email_used( $value ) ) {
+	if ( has_email_submitted_three_entries( $value ) ) {
 		$result['is_valid'] = false;
-		$result['message'] = __( 'This email address has already been used for a submission', 'wikimedia-contest-admin' );
+		$result['message'] = __( 'You have met the maximum number of submissions for this contest. Each contestant can submit up to 3 sound logos.', 'wikimedia-contest' );
 	}
 
 	return $result;
