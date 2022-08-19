@@ -133,7 +133,10 @@ $flags = array_intersect( $screening_results['flags'], array_keys( $available_fl
 						</label>
 					</p>
 				</div>
-				<input class="button button-primary" type="submit" value ="<?php esc_attr_e( 'Record screening decision', 'wikimedia-contest-admin' ); ?>" />
+				<button type="submit" class="moderation__submit button button-primary">
+					<span class="button__text button__text--ineligible"><?php esc_html_e( 'Mark submission ineligible', 'wikimedia-contest-admin' ); ?></span>
+					<span class="button__text button__text--eligible"><?php esc_html_e( 'Mark submission eligible', 'wikimedia-contest-admin' ); ?></span>
+				</button>
 			</div>
 		</div>
 	</form>

@@ -30,6 +30,14 @@ function enqueue_assets() : void {
 
 	Asset_Loader\enqueue_asset(
 		$manifest,
+		'admin.js',
+		[
+			'handle' => 'contest-admin-scripts',
+		]
+	);
+
+	Asset_Loader\enqueue_asset(
+		$manifest,
 		'adminStyles.css',
 		[
 			'handle' => 'contest-admin-styles',

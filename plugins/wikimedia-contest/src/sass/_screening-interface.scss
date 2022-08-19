@@ -33,6 +33,31 @@
 			justify-content: space-between;
 		}
 	}
+
+	&__submit {
+		.button__text--ineligible {
+			display: none;
+		}
+
+		&.ineligible {
+			background-color: #d00;
+			border-color: #d00;
+
+			&:hover {
+				background-color: #d33;
+				border-color: #d33;
+			}
+
+			/* stylelint-disable max-nesting-depth */
+			.button__text--ineligible {
+				display: block;
+			}
+
+			.button__text--eligible {
+				display: none;
+			}
+		}
+	}
 }
 
 .moderation-flag {
@@ -50,3 +75,4 @@
 		background: red;
 	}
 }
+
