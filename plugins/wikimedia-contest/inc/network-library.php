@@ -124,3 +124,25 @@ function transition_post_status( $new_status, $old_status, $post ) {
 
 	restore_current_blog();
 }
+
+/**
+ * Count posts based on submitter_email meta key.
+ *
+ * @param string $submitter_email The submitter email.
+ * @return int|null The number of posts or null.
+ */
+function count_posts_by_submitter_email_meta( $submitter_email ) {
+	$main_site_id = get_main_site_id();
+	$current_site_id = get_current_blog_id();
+	switch_to_blog( $main_site_id );
+
+	$search_args = [
+		'post_type'   => 'submission',
+		'post_status' => 'any',
+		'meta_value'  => $submitter_email,
+	];
+	$posts = new \WP_Query( $search_args );
+	restore_current_blog( $current_site_id );
+
+	return $posts->post_count ?? null;
+}

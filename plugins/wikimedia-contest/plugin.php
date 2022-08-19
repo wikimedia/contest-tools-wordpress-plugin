@@ -43,6 +43,9 @@ Languages\bootstrap();
 require_once __DIR__ . '/inc/admin-ajax.php';
 Admin_Ajax\bootstrap();
 
+require_once __DIR__ . '/inc/network-settings.php';
+Network_Settings\bootstrap();
+
 // Require core files in the admin that may not be loaded by default.
 if ( is_admin() ) {
 	if ( ! class_exists( 'WP_Post_List_Table' ) ) {

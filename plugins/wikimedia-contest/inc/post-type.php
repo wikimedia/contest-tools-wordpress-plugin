@@ -72,7 +72,7 @@ function register_submission_custom_post_type() {
  */
 function register_submission_custom_post_statuses() {
 
-	// Ineligible submission status.
+	// Ineligible.
 	register_post_status( 'ineligible', [
 		'label'                     => _x( 'Ineligible', 'post' ),
 		'public'                    => true,
@@ -82,7 +82,7 @@ function register_submission_custom_post_statuses() {
 		'label_count'               => _n_noop( 'Ineligible <span class="count">(%s)</span>', 'Ineligible <span class="count">(%s)</span>' ),
 	] );
 
-	// Eligible submission status.
+	// Eligible.
 	register_post_status( 'eligible', [
 		'label'                     => _x( 'Eligible', 'post' ),
 		'public'                    => true,
@@ -92,24 +92,34 @@ function register_submission_custom_post_statuses() {
 		'label_count'               => _n_noop( 'Eligible <span class="count">(%s)</span>', 'Eligible <span class="count">(%s)</span>' ),
 	] );
 
-	// Selected submission status.
-	register_post_status( 'selected', [
-		'label'                     => _x( 'Selected', 'post' ),
+	// Scoring phase 1.
+	register_post_status( 'scoring_phase_1', [
+		'label'                     => _x( 'Scoring phase 1', 'post' ),
 		'public'                    => true,
 		'exclude_from_search'       => false,
 		'show_in_admin_all_list'    => true,
 		'show_in_admin_status_list' => true,
-		'label_count'               => _n_noop( 'Selected <span class="count">(%s)</span>', 'Selected <span class="count">(%s)</span>' ),
+		'label_count'               => _n_noop( 'Scoring phase 1 <span class="count">(%s)</span>', 'Scoring phase 1 <span class="count">(%s)</span>' ),
 	] );
 
-	// Finalist submission status.
-	register_post_status( 'finalist', [
-		'label'                     => _x( 'Finalist', 'post' ),
+	// Scoring phase 2.
+	register_post_status( 'scoring_phase_2', [
+		'label'                     => _x( 'Scoring phase 2', 'post' ),
 		'public'                    => true,
 		'exclude_from_search'       => false,
 		'show_in_admin_all_list'    => true,
 		'show_in_admin_status_list' => true,
-		'label_count'               => _n_noop( 'Finalists <span class="count">(%s)</span>', 'Finalists <span class="count">(%s)</span>' ),
+		'label_count'               => _n_noop( 'Scoring phase 2 <span class="count">(%s)</span>', 'Scoring phase 2 <span class="count">(%s)</span>' ),
+	] );
+
+	// Scoring phase 3.
+	register_post_status( 'scoring_phase_3', [
+		'label'                     => _x( 'Scoring phase 3', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Scoring phase 3 <span class="count">(%s)</span>', 'Scoring phase 3 <span class="count">(%s)</span>' ),
 	] );
 }
 
