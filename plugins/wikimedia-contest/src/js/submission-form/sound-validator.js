@@ -183,8 +183,10 @@ const validateSoundFile = async ( { target } ) => {
 		} );
 	}
 
-	// Mark the file validity in the field.
-	markValidation( target, validations );
+	if ( validations.length ) {
+		markValidation( target, validations );
+		return;
+	}
 };
 
 /**
