@@ -67,6 +67,11 @@
 	padding: 6px 9px;
 	margin: 0 10px 10px 0;
 
+	&.screening-result {
+		background: #ddd;
+		text-transform: uppercase;
+	}
+
 	&--yellow {
 		background: yellow;
 	}

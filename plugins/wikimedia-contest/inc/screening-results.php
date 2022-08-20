@@ -44,6 +44,7 @@ function bootstrap() {
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
+	add_filter( 'pre_comment_approved', __NAMESPACE__ . '\\handle_custom_comment_approved_status', 10, 2 );
 }
 
 /**
@@ -272,7 +273,7 @@ function add_screening_comment( int $submission_id, array $results, $user_id = 0
 		'comment_post_ID' => $submission_id,
 		'comment_type' => COMMENT_TYPE,
 		'comment_agent' => COMMENT_AGENT,
-		'comment_approved' => $result['status'],
+		'comment_approved' => $results['status'],
 		'comment_author' => get_userdata( $user_id )->user_nicename ?? get_bloginfo( 'name' ),
 		'comment_content' => $comment_content,
 		'comment_meta' => [
@@ -384,4 +385,22 @@ function allow_custom_statuses_in_workflows_query( $query_args ) {
 	}
 
 	return $query_args;
+}
+
+/**
+ * Support custom values for "comment_approved".
+ *
+ * By default wp_insert_comment sets all positive values to 1. We want to
+ * support "eligible" and "ineligible" here.
+ *
+ * @param int|string $approved Comment approved status.
+ * @param [] $commentdata Comment data array.
+ * @return int|string The updated comment approved status.
+ */
+function handle_custom_comment_approved_status( $approved, $commentdata ) {
+	if ( $commentdata['comment_type'] === COMMENT_TYPE && $commentdata['comment_agent'] === COMMENT_AGENT ) {
+		$approved = $commentdata['comment_approved'];
+	}
+
+	return $approved;
 }
