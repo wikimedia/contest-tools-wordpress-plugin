@@ -184,10 +184,15 @@ function handle_screening_results() {
 
 	$flags = array_intersect_key( $_POST['moderation-flags'] ?? [], get_moderation_flags() );
 	$is_invalid = ! empty( $_POST['moderation-invalid'] ) || count( $flags );
-	$other = $_POST['moderation-other'];
+	$message_other = sanitize_text_field( $_POST['moderation-other'] );
 
-	add_screening_comment( $post_id, $is_invalid ? 'ineligible' : 'eligible', array_keys( $flags ) );
+	$results = [
+		'status' => $is_invalid ? 'ineligible' : 'eligible',
+		'flags' => array_keys( $flags ),
+		'message' => $message_other,
+	];
 
+	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
 }
 
@@ -246,37 +251,35 @@ function get_moderation_flags() {
  * Insert a new screening result.
  *
  * @param int $submission_id Post ID of submission being screened.
- * @param string? $status Status recommended by screener ('eligible'/'ineligible'/null for no decision)
- * @param array $flags Flags to assign to post.
- * @param bool $is_auto If this is the result of an automated check, and therefore shouldn't have a user ID.
+ * @param array $results Screening result fields.
+ *   @var string 'status'  Status recommended by screener ('eligible'/'ineligible'/null for no decision).
+ *   @var array  'flags'   Moderation flags assigned to post.
+ *   @var string 'message' Free-text message field submitted with screening result.
+ * @param int $user_id User ID for screener (0 for automatic flags).
  */
-function add_screening_comment( int $submission_id, $status = 'none', array $flags = [], $is_auto = false ) {
+function add_screening_comment( int $submission_id, array $results, $user_id = 0 ) {
+
 	// Validate the flags specified against the allowed list.
 	$allowed_flags = array_merge(
 		get_available_flags(),
 		get_moderation_flags()
 	);
+	$flags = array_intersect( $results['flags'], array_keys( $allowed_flags ) );
 
-	$flags = array_intersect( $flags, array_keys( $allowed_flags ) );
-
-	$comment_author = $is_auto ? [] : wp_get_current_user();
-
-	$comment_content = wp_json_encode( [
-		'status' => $status,
-		'flags' => $flags,
-	] );
+	$comment_content = wp_json_encode( $results );
 
 	wp_insert_comment( [
 		'comment_post_ID' => $submission_id,
 		'comment_type' => COMMENT_TYPE,
 		'comment_agent' => COMMENT_AGENT,
-		'comment_approved' => $status,
-		'comment_author' => $comment_author->user_nicename ?? get_bloginfo( 'name' ),
+		'comment_approved' => $result['status'],
+		'comment_author' => get_userdata( $user_id )->user_nicename ?? get_bloginfo( 'name' ),
 		'comment_content' => $comment_content,
 		'comment_meta' => [
 			'flags' => $flags,
+			'message' => $results['message'] ?? null,
 		],
-		'user_id' => $comment_author->ID ?? 0,
+		'user_id' => $user_id,
 	] );
 }
 
@@ -365,7 +368,7 @@ function inserted_submission( $post_data, $post_id ) {
 	}
 
 	if ( $flags ) {
-		add_screening_comment( $post_id, null, $flags, true );
+		add_screening_comment( $post_id, [ 'flags' => $flags ] );
 	}
 }
 
