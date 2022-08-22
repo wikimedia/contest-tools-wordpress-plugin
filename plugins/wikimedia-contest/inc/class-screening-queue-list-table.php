@@ -11,6 +11,7 @@ namespace Wikimedia_Contest;
 
 use Wikimedia_Contest\Screening_Results;
 use WP_Posts_List_Table;
+use WP_Query;
 
 /**
  * List table for displaying all submissions awaiting screening.
@@ -84,7 +85,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
 
 		// Set up global WP_Query vars.
-		query_posts( [
+		wp_edit_posts_query( [
 			'post_type' => 'submission',
 			'post_status' => 'draft',
 			'per_page' => $per_page ?? 20,
