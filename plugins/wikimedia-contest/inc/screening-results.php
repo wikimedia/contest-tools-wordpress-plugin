@@ -43,6 +43,7 @@ function bootstrap() {
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_screening_queue_menu_pages' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
+	add_action( 'wikimedia_contest_added_screening_result', __NAMESPACE__ . '\\maybe_update_submission_status' );
 	add_filter( 'rest_comment_query', __NAMESPACE__ . '\\allow_custom_statuses_in_workflows_query' );
 	add_filter( 'pre_comment_approved', __NAMESPACE__ . '\\handle_custom_comment_approved_status', 10, 2 );
 }
@@ -282,6 +283,8 @@ function add_screening_comment( int $submission_id, array $results, $user_id = 0
 		],
 		'user_id' => $user_id,
 	] );
+
+	do_action( 'wikimedia_contest_added_screening_result', $submission_id );
 }
 
 /**
@@ -370,6 +373,33 @@ function inserted_submission( $post_data, $post_id ) {
 
 	if ( $flags ) {
 		add_screening_comment( $post_id, [ 'flags' => $flags ] );
+	}
+}
+
+/**
+ * Update the submission status after two reviewers have screened it.
+ *
+ * Once there are two reviews in agreement, the submission should be
+ * automatically moved to the next stage: either ineligible or into the first
+ * scoring phase.
+ *
+ * @param int $submission_id Submission post ID.
+ */
+function maybe_update_submission_status( $submission_id ) {
+	$results = get_screening_results( $submission_id );
+	$counts = array_count_values( $results['decision'] );
+
+	switch ( array_search( 2, $counts ) ) {
+	case 'ineligible':
+		return wp_update_post( [
+			'ID' => $submission_id,
+			'post_status' => 'ineligible',
+		] );
+	case 'eligible':
+		return wp_update_post( [
+			'ID' => $submission_id,
+			'post_status' => 'scoring_phase_1',
+		] );
 	}
 }
 
