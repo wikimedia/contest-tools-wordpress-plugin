@@ -7,6 +7,8 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
+use Wikimedia_Contest\Screening_Results;
+
 const SLUG = 'submission';
 
 /**
@@ -148,6 +150,8 @@ function add_submission_box() : void {
 function set_custom_edit_submission_columns( $columns ) : array {
 	$columns['audio_file'] = 'Audio file';
 
+	$columns['screening_results'] = 'Screening Results';
+
 	// Including column "Review submission" only if it's on the main site of the network.
 	$site_id = get_current_blog_id();
 	if ( is_main_site( $site_id ) ) {
@@ -169,6 +173,16 @@ function custom_submission_column( $column, $post_id ) : void {
 
 		case 'audio_file':
 			echo sprintf( '<audio controls><source src="%s"></audio>', esc_attr( get_post_meta( $post_id, 'audio_file_path', true ) ) );
+			break;
+
+		case 'screening_results':
+			$results = Screening_Results\get_screening_results( $post_id );
+
+			if ( ! empty( $results['decision'] ) ) {
+				foreach ( $results['decision'] as $decision ) {
+					echo '<span class="moderation-flag screening-result">' . esc_html( $decision ) . '</span>';
+				}
+			}
 			break;
 
 		case 'status_change':
