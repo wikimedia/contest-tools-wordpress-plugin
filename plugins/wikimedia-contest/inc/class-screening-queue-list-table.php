@@ -9,6 +9,7 @@
 
 namespace Wikimedia_Contest;
 
+use Wikimedia_Contest\Screening_Results;
 use WP_Posts_List_Table;
 
 /**
@@ -28,10 +29,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		parent::__construct( [
 			'singular' => __( 'Sound Logo Entry', 'wikimedia-contest-admin' ),
 			'plural' => __( 'Sound Logo Entries', 'wikimedia-contest-admin' ),
-			'screen' => [
-				'base' => 'edit-submission',
-				'post_type' => 'submission',
-			],
+			'screen' => 'edit-submission-screening-queue',
 			'ajax' => false,
 		] );
 	}
@@ -85,8 +83,8 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		// Add comment filters to only show posts user can screen.
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
 
-		// Set up WP_Query vars.
-		wp_edit_posts_query( [
+		// Set up global WP_Query vars.
+		query_posts( [
 			'post_type' => 'submission',
 			'post_status' => 'draft',
 			'per_page' => $per_page ?? 20,
@@ -151,7 +149,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		}
 
 		$actions = [
-			'screen' => '<a href="' . get_edit_post_link( $item->ID ) . '">' .
+			'screen' => '<a href="' . Screening_Results\get_screening_link( $item->ID ) . '">' .
 				esc_html__( 'Screen sound logo submission' ) .
 				'</a>',
 		];
@@ -178,14 +176,14 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	/**
 	 * Render the submission date column.
 	 */
-	function column_col_submission_date() {
+	function column_col_submission_date( $item ) {
 		// Use core's date format strings for proper localization.
 		// phpcs:disable HM.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo sprintf(
 			__( '%1$s at %2$s' ),
-			get_the_time( __( 'Y/m/d' ), $post ),
-			get_the_time( __( 'g:i a' ), $post )
+			get_the_time( __( 'Y/m/d' ), $item ),
+			get_the_time( __( 'g:i a' ), $item )
 		);
 		// phpcs:enable HM.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -199,11 +197,15 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function column_col_screening_results( $item ) {
 		$screening_results = Screening_Results\get_screening_results( $item->ID );
 		$available_flags = Screening_Results\get_available_flags();
+		$moderation_flags = Screening_Results\get_moderation_flags();
 
 		if ( $screening_results['flags'] ) {
 			foreach ( $screening_results['flags'] as $flag ) {
 				if ( isset( $available_flags[ $flag ] ) ) {
-					echo '<span class="screening-flag">' . esc_html( $available_flags[ $flag ] ) . '</span>';
+					echo '<span class="moderation-flag moderation-flag--yellow">' . esc_html( $available_flags[ $flag ] ) . '</span>';
+				}
+				if ( isset( $moderation_flags[ $flag ] ) ) {
+					echo '<span class="moderation-flag moderation-flag--red">' . esc_html( $moderation_flags[ $flag ] ) . '</span>';
 				}
 			}
 		}
