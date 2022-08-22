@@ -79,46 +79,23 @@ function register_screener_role() {
  * Submissions header. Otherwise, it's a top-level menu item.
  */
 function register_screening_queue_menu_pages() {
-
-	if ( current_user_can( 'edit_submissions' ) ) {
-		add_submenu_page(
-			'edit.php?post_type=submission',
-			__( 'Screening Queue', 'wikimedia-contest-admin' ),
-			__( 'Screening Queue', 'wikimedia-contest-admin' ),
-			'screen_submissions',
-			'screening-queue',
-			__NAMESPACE__ . '\\render_screening_queue',
-			5
-		);
-		add_submenu_page(
-			'edit.php?post_type=submission',
-			__( 'Screen Submission', 'wikimedia-contest-admin' ),
-			__( 'Screen Submission', 'wikimedia-contest-admin' ),
-			'screen_submissions',
-			'screen-submission',
-			__NAMESPACE__ . '\\render_screening_interface',
-			5
-		);
-	} else {
-		add_menu_page(
-			__( 'Screening Queue', 'wikimedia-contest-admin' ),
-			__( 'Screening Queue', 'wikimedia-contest-admin' ),
-			'screen_submissions',
-			'screening-queue',
-			__NAMESPACE__ . '\\render_screening_queue',
-			'dashicons-yes-alt',
-			5
-		);
-		add_submenu_page(
-			'screening-queue',
-			__( 'Screen Submission', 'wikimedia-contest-admin' ),
-			__( 'Screen Submission', 'wikimedia-contest-admin' ),
-			'screen_submissions',
-			'screen-submission',
-			__NAMESPACE__ . '\\render_screening_interface',
-			5
-		);
-	}
+	add_menu_page(
+		__( 'Screening Queue', 'wikimedia-contest-admin' ),
+		__( 'Screening Queue', 'wikimedia-contest-admin' ),
+		'screen_submissions',
+		'screening-queue',
+		__NAMESPACE__ . '\\render_screening_queue',
+		'dashicons-yes-alt',
+		4
+	);
+	add_submenu_page(
+		'screening-queue',
+		__( 'Screen Submission', 'wikimedia-contest-admin' ),
+		__( 'Screen Submission', 'wikimedia-contest-admin' ),
+		'screen_submissions',
+		'screen-submission',
+		__NAMESPACE__ . '\\render_screening_interface',
+	);
 }
 
 /**
@@ -145,7 +122,7 @@ function render_screening_interface() {
 	$post_id = $_REQUEST['post'] ?? null;
 
 	if ( ! $post_id ) {
-		wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 	}
 
 	if ( ! empty( $_POST['_screen_submission_nonce'] ) ) {
@@ -158,17 +135,18 @@ function render_screening_interface() {
 /**
  * Get a link to edit a submission post.
  *
+ * The screening link is different depending on whether the user can edit or not.
+ *
  * @param int $submission_id Submission ID.
  * @return string Screening interface URL for this post.
  */
 function get_screening_link( $submission_id ) {
 	return add_query_arg(
 		[
-			'post_type' => 'submission',
 			'page' => 'screen-submission',
 			'post' => $submission_id,
 		],
-		admin_url( 'edit.php' )
+		admin_url( 'admin.php' )
 	);
 }
 
@@ -180,7 +158,7 @@ function handle_screening_results() {
 
 	$post_id = $_REQUEST['post'];
 
-	if ( ! current_user_can( 'screen-submissions' ) ) {
+	if ( ! current_user_can( 'screen_submissions' ) ) {
 		return;
 	}
 
@@ -195,7 +173,7 @@ function handle_screening_results() {
 	];
 
 	add_screening_comment( $post_id, $results, get_current_user_id() );
-	wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=screening-queue' ) );
+	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 }
 
 /**
