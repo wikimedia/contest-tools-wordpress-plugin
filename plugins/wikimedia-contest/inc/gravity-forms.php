@@ -9,7 +9,20 @@ namespace Wikimedia_Contest\Gravity_Forms;
 
 use Asset_Loader;
 use Asset_Loader\Manifest;
+use RGFormsModel;
 use Wikimedia_Contest\Network_Library;
+
+/**
+ * Allowed file types.
+ *
+ * @var string[]
+ */
+const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/x-wav' ];
+
+/**
+ * Maximum upload file size: 100MB.
+ */
+const MAX_FILE_SIZE = 100000000;
 
 /**
  * Bootstrap form functionality.
@@ -18,6 +31,7 @@ function bootstrap() {
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
+	add_filter( 'gform_field_validation', __NAMESPACE__ . '\\audio_file_validation_messsages', 10, 4 );
 	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 5 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4);
@@ -173,6 +187,57 @@ function identify_audio_meta_field( $form ) {
 	}
 
 	return $form;
+}
+
+/**
+ * Return validation issues for invalid audio files.
+ *
+ * @param [] $result Validation result, includes 'is_valid' and 'message' parameters.
+ * @param mixed $value Field value to validate.
+ * @param Form $form Gravity Forms Form object.
+ * @param Field $field Gravity Forms Field object.
+ * @return [] Updated validation result.
+ */
+function audio_file_validation_messsages( $result, $value, $form, $field ) {
+	if ( $field['adminLabel'] !== 'audio_file' || ! $result[ 'is_valid' ] ) {
+		return $result;
+	}
+
+	$meta_field = current( wp_list_filter( $form['fields'], [ 'label' => 'audio_file_meta' ] ) );
+	[
+		'type' => $file_type,
+		'duration' => $file_duration,
+		'sampleRate' => $sample_rate,
+		'size' => $file_size,
+	] = json_decode( RGFormsModel::get_field_value( $meta_field ), true );
+
+	if ( empty( $file_type ) || ! in_array( $file_type, ALLOWED_TYPES, true ) ) {
+		return [
+			'is_valid' => false,
+			'message' => __( 'File must be one of the allowed types: MP3, OGG, or WAV.', 'wikimedia-contest' ),
+		];
+	}
+
+	if ( $file_size > MAX_FILE_SIZE ) {
+		return [
+			'is_valid' => false,
+			'message' => __( 'File must be less than 100MB.', 'wikimedia-contest' ),
+		];
+	}
+
+	if ( $file_duration > 10 ) {
+		return [
+			'is_valid' => false,
+			'message' => __( 'Sound must be less than 10s.', 'wikimedia-contest' ),
+		];
+	} elseif ( $file_duration < 1) {
+		return [
+			'is_valid' => false,
+			'message' => __( 'Sound must be at least 1s.', 'wikimedia-contest' ),
+		];
+	}
+
+	return $result;
 }
 
 /**
