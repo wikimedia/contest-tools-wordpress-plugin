@@ -86,7 +86,7 @@ function register_screening_queue_menu_pages() {
 		'screening-queue',
 		__NAMESPACE__ . '\\render_screening_queue',
 		'dashicons-yes-alt',
-		4
+		3
 	);
 	add_submenu_page(
 		'screening-queue',
