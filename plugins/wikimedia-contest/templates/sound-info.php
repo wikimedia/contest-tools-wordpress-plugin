@@ -1,0 +1,104 @@
+<?php
+/**
+ * Template for displaying audio submission information.
+ *
+ * @package wikimedia-contest
+ */
+
+use Wikimedia_Contest\Screening_Results;
+
+/**
+ * Technical explanation provided by submitter in entry form.
+ *
+ * @var string
+ */
+$explanation_creation = get_post_meta( $post_id, 'explanation_creation', true ) ?: '';
+
+/**
+ * Explanation of the inspiration behind the submission, provided by submitter in entry form.
+ *
+ * @var string
+ */
+$explanation_inspiration = get_post_meta( $post_id, 'explanation_inspiration', true ) ?: '';
+
+/**
+ * Yes/no answers from the creation process.
+ *
+ * @var [] Key => value for all fields.
+ */
+$creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
+
+/**
+ * Audio file.
+ *
+ * @var string
+ */
+$audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
+
+/**
+ * Audio file meta details.
+ *
+ * @var string
+ */
+$audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
+
+/**
+ * Screening results, including automatically assigned "yellow flags".
+ *
+ * @var []
+ */
+
+$available_flags = Screening_Results\get_available_flags();
+$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );
+
+// More readable labels for each flag.
+$flag_labels = array(
+	'all_original_sounds'     => __( 'Completely original work', 'wikimedia-contest-admin' ),
+	'cc0_or_public_domain'    => __( 'Used sounds are CC0 or public domain', 'wikimedia-contest-admin' ),
+	'used_prerecorded_sounds' => __( 'Used prerecorded sounds', 'wikimedia-contest-admin' ),
+	'used_soundpack_library'  => __( 'Work from sound pack or a sample library', 'wikimedia-contest-admin' ),
+	'used_samples'            => __( 'Used one or more samples', 'wikimedia-contest-admin' ),
+	'source_urls'             => __( 'Source URLs of not created sounds', 'wikimedia-contest-admin' ),
+);
+?>
+
+<div class="card fullcard">
+	<h2><?php echo get_the_title( $post_id ); ?></h2>
+	<audio controls><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
+</div>
+
+<?php
+if ( count( $flags ) ) {
+	echo '<div class="card">';
+	echo '<h3>' . esc_html__( 'Automated flags', 'wikimedia-contest-admin' ) . '</h3>';
+
+	foreach ( $flags as $flag ) {
+		echo '<span class="moderation-flag moderation-flag--yellow">' . $available_flags[ $flag ] . '</span>';
+	}
+	echo '</div>';
+}
+?>
+
+<div class="card">
+	<h3><?php esc_html_e( 'Creation Process', 'wikimedia-contest-admin' ); ?></h3>
+	<dl>
+		<?php foreach ( $creation_process as $key => $value ) : ?>
+			<dt><?php echo "<b>" . esc_html( $flag_labels[ $key ] ) . "</b>"; ?></dt>
+			<dd><?php echo empty( $value ) ? '<i>-</i>' : esc_html( $value ); ?></dd>
+		<?php endforeach; ?>
+	</dl>
+</div>
+
+<div class="card">
+	<h2><?php esc_html_e( 'Technical explanation of sound creation', 'wikimedia-contest-admin' ); ?></h2>
+	<div class="sound-details-textarea">
+		<?php echo wpautop( $explanation_creation ); ?>
+	</div>
+</div>
+
+<div class="card">
+	<h2><?php esc_html_e( 'Brief explanation of the inspiration behind this entry', 'wikimedia-contest-admin' ); ?></h2>
+	<div class="sound-details-textarea">
+		<?php echo wpautop( $explanation_inspiration ); ?>
+	</div>
+</div>
