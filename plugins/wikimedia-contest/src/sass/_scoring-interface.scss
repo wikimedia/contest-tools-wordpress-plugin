@@ -5,7 +5,7 @@
 
 	& .card {
 		max-width: unset;
-		flex: 1 1 0
+		flex: 1 1 0;
 	}
 
 	& .fullcard {
@@ -32,12 +32,17 @@
 		min-width: 60px;
 	}
 
+	th {
+		background-color: #F3F3F3;
+		font-size: 14px;
+	}
+
 	.col--a {
 		width: 85%;
 	}
 
 	td.col--a {
-		padding-left: 20px;
+		padding-left: 30px;
 	}
 
 	td.col--b {
@@ -50,7 +55,7 @@
 	}
 
 	input {
-		width: 35px;
+		width: 52px;
 		height: 30px;
 	}
 }

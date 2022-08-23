@@ -47,9 +47,12 @@ $audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
  *
  * @var []
  */
-
+$screening_results = Screening_Results\get_screening_results( $post_id );
 $available_flags = Screening_Results\get_available_flags();
-$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );
+
+if ( $screening_results['flags'] !== null ) {
+	$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );
+}
 
 // More readable labels for each flag.
 $flag_labels = array(
@@ -68,7 +71,7 @@ $flag_labels = array(
 </div>
 
 <?php
-if ( count( $flags ) ) {
+if ( count( $flags ?? [] ) ) {
 	echo '<div class="card">';
 	echo '<h3>' . esc_html__( 'Automated flags', 'wikimedia-contest-admin' ) . '</h3>';
 

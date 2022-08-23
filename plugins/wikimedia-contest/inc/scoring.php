@@ -53,24 +53,27 @@ const SCORING_STATUSES = [
 const SCORING_CRITERIA = [
 	'conceptual' => [
 		'weight'   => 0.5,
+		'label'    => 'Conceptual Match (%d%% weighting)',
 		'criteria' => [
-			'represent_spirit' => 'To what extent does the sound represent the spirit of the Wikimedia movement',
-			'closely_communicate' => 'How closely does the sound communicate one of the creative prompts',
-			'feel_human' => 'To what extent does it feel human, inspired, smart and warm',
+			'represent_spirit' => 'To what extent does the sound represent the spirit of the Wikimedia movement?',
+			'closely_communicate' => 'How closely does the sound communicate one of the creative prompts?',
+			'feel_human' => 'To what extent does it feel human, inspired, smart and warm?',
 		]
 	],
 	'originality' => [
 		'weight'   => 0.25,
+		'label'    => 'Originality (%s%% weighting)',
 		'criteria' => [
-			'original_unique' => 'To what extent does the sound feel original and unique',
-			'stand_out' => 'How much does it stand out compared to other sound logos',
+			'original_unique' => 'To what extent does the sound feel original and unique?',
+			'stand_out' => 'How much does it stand out compared to other sound logos?',
 		]
 	],
 	'recallability' => [
 		'weight'   => 0.25,
+		'label'    => 'Recallability (%s%% weighting)',
 		'criteria' => [
-			'feel_recall' => 'How easily do you feel you could recall the sound logo',
-			'easy_replicate' => 'How easily do you feel you would be able to replicate (sing / hum / tap) the sound logo',
+			'feel_recall' => 'How easily do you feel you could recall the sound logo?',
+			'easy_replicate' => 'How easily do you feel you would be able to replicate (sing / hum / tap) the sound logo?',
 		]
 	],
 ];
@@ -81,7 +84,7 @@ const SCORING_CRITERIA = [
  * @return void
  */
 function bootstrap() : void {
-	add_action( 'init', __NAMESPACE__ . '\\register_scoring_panel' );
+	add_action( 'init', __NAMESPACE__ . '\\register_scorer_role' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
 }
@@ -91,7 +94,7 @@ function bootstrap() : void {
  *
  * @return void
  */
-function register_scoreer_role() : void {
+function register_scorer_role() : void {
 	$roles = get_option( 'wikimedia_contest_roles' ) ?: [];
 
 	if ( ! $roles[ USER_ROLE ] !== null ) {
@@ -122,45 +125,24 @@ function register_scoreer_role() : void {
  */
 function register_scoring_menu_pages() : void {
 
-	if ( current_user_can( 'edit_submissions' ) ) {
-		add_submenu_page(
-			'edit.php?post_type=submission',
-			__( 'Scoring Queue', 'wikimedia-contest-admin' ),
-			__( 'Scoring Queue', 'wikimedia-contest-admin' ),
-			'score_submissions',
-			'scoring-queue',
-			__NAMESPACE__ . '\\render_scoring_queue',
-			5
-		);
-		add_submenu_page(
-			'edit.php?post_type=submission',
-			__( 'Score Submission', 'wikimedia-contest-admin' ),
-			__( 'Score Submission', 'wikimedia-contest-admin' ),
-			'score_submissions',
-			'score-submission',
-			__NAMESPACE__ . '\\render_scoring_interface',
-			5
-		);
-	} else {
-		add_menu_page(
-			__( 'Scoring Queue', 'wikimedia-contest-admin' ),
-			__( 'Scoring Queue', 'wikimedia-contest-admin' ),
-			'score_submissions',
-			'scoring-queue',
-			__NAMESPACE__ . '\\render_scoring_queue',
-			'dashicons-yes-alt',
-			5
-		);
-		add_submenu_page(
-			'scoring-queue',
-			__( 'Score Submission', 'wikimedia-contest-admin' ),
-			__( 'Score Submission', 'wikimedia-contest-admin' ),
-			'score_submissions',
-			'score-submission',
-			__NAMESPACE__ . '\\render_scoring_interface',
-			5
-		);
-	}
+	add_menu_page(
+		__( 'Scoring Queue', 'wikimedia-contest-admin' ),
+		__( 'Scoring Queue', 'wikimedia-contest-admin' ),
+		'score_submissions',
+		'scoring-queue',
+		__NAMESPACE__ . '\\render_scoring_queue',
+		'dashicons-yes-alt',
+		3
+	);
+
+	add_submenu_page(
+		'scoring-queue',
+		__( 'Score Submission', 'wikimedia-contest-admin' ),
+		__( 'Score Submission', 'wikimedia-contest-admin' ),
+		'score_submissions',
+		'score-submission',
+		__NAMESPACE__ . '\\render_scoring_interface',
+	);
 }
 
 /**
@@ -188,13 +170,13 @@ function render_scoring_queue() : void {
  * @return void
  */
 function render_scoring_interface() : void {
-	$post_id = $_REQUEST['post'] ?? null;
-
+	$post_id = sanitize_text_field( $_REQUEST['post'] ?? null );
 	if ( ! $post_id ) {
-		wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=scoring-queue' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
+		exit;
 	}
 
-	if ( ! empty( $_POST['_score_submission_nonce'] ) ) {
+	if ( ! empty( sanitize_text_field( $_POST['_score_submission_nonce'] ) ) ) {
 		handle_scoring_results();
 	}
 
@@ -210,11 +192,10 @@ function render_scoring_interface() : void {
 function get_scoring_link( $submission_id ) {
 	return add_query_arg(
 		[
-			'post_type' => 'submission',
 			'page' => 'score-submission',
 			'post' => $submission_id,
 		],
-		admin_url( 'edit.php' )
+		admin_url( 'admin.php' )
 	);
 }
 
@@ -226,7 +207,7 @@ function get_scoring_link( $submission_id ) {
 function handle_scoring_results() : void {
 	check_admin_referer( 'score-submission', '_score_submission_nonce' );
 
-	$post_id = $_REQUEST['post'];
+	$post_id = sanitize_text_field( $_REQUEST['post'] ?? null );
 
 	if ( ! current_user_can( 'score-submissions' ) ) {
 		return;
@@ -239,7 +220,7 @@ function handle_scoring_results() : void {
 			$scoring_criteria[ $key ] = $value;
 		}
 	}
-	$additional_comment = sanitize_text_field( $_POST['additional_scoring_comment'] );
+	$additional_comment = sanitize_text_field( $_POST['additional_scoring_comment'] ?? '' );
 
 	$results = [
 		'scoring' => $scoring_criteria,
@@ -247,7 +228,8 @@ function handle_scoring_results() : void {
 	];
 
 	add_scoring_comment( $post_id, $results, get_current_user_id() );
-	wp_safe_redirect( admin_url( 'edit.php?post_type=submission&page=scoring-queue' ) );
+	wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
+	exit;
 }
 
 /**
@@ -304,9 +286,9 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id_id User ID which inserted scoring comments.
  *
- * @return array Array of result data.
- */
-function get_user_score( $submission_id, $user_id ) : array {
+ * @return array|null Scoring results, or null if no results found.
+  */
+function get_user_score( $submission_id, $user_id ) : ?array {
 	$comments = get_comments( [
 		'post_id' => $submission_id,
 		'type' => COMMENT_TYPE,
@@ -331,7 +313,7 @@ function get_user_score( $submission_id, $user_id ) : array {
 }
 
 /**
- * Inativating all past comments from the user, so we don't contabilize them but keep the record.
+ * Inactivate all past comments from the user, so we don't calculate them but keep the record.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id User ID which inserted scoring comments.
