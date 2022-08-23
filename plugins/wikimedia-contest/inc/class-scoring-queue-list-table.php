@@ -30,8 +30,11 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 			'singular' => __( 'Sound Logo Entry', 'wikimedia-contest-admin' ),
 			'plural' => __( 'Sound Logo Entries', 'wikimedia-contest-admin' ),
 			'screen' => 'edit-submission-scoring-queue',
+			'post_type' => 'submission',
 			'ajax' => false,
 		] );
+
+		$this->screen->post_type = 'submission';
 	}
 
 	/**
@@ -50,9 +53,9 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		$paged = absint( $_REQUEST['paged'] ?? 1 );
 
 		// Set up global WP_Query vars.
-		query_posts( [
+		wp_edit_posts_query( [
 			'post_type' => 'submission',
-			'post_status' => \Wikimedia_Contest\Scoring\SCORING_STATUSES,
+			'post_status' => get_site_option( 'contest_status' ) ?: 'scoring_phase_1',
 			'per_page' => $per_page ?? 20,
 			'orderby' => $_REQUEST['orderby'] ?? 'date',
 			'order' => $_REQUEST['order'] ?? 'desc',
@@ -81,6 +84,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 */
 	function get_columns() {
 		return [
+			'cb' => '<input type="checkbox">',
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
 			'col_scoring_results' => __( 'Scoring Results', 'wikimedia-contest-admin' ),
@@ -125,9 +129,9 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 *
 	 * @return [] Empty array - no bulk actions available in this view.
 	 */
-	function get_bulk_actions() {
-		return [];
-	}
+	//function get_bulk_actions() {
+		//return apply_filters( 'bulk_actions-edit-submission-scoring-queue', [] );
+	//}
 
 	/**
 	 * Render the submission ID column.

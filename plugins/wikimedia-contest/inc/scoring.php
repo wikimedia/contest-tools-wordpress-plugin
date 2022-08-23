@@ -14,11 +14,18 @@ use Wikimedia_Contest\Post_Type;
 use Wikimedia_Contest\Scoring_Queue_List_Table;
 
 /**
- * User role for scoreers.
+ * User role for scorers.
  *
  * @var string
  */
-const USER_ROLE = 'scoring_panel';
+const PANELIST_USER_ROLE = 'scoring_panel';
+
+/**
+ * User role for scoring panel leads.
+ *
+ * @var string
+ */
+const PANEL_LEAD_USER_ROLE = 'scoring_panel_lead';
 
 /**
  * Comment type used to store editorial comments.
@@ -84,22 +91,27 @@ const SCORING_CRITERIA = [
  * @return void
  */
 function bootstrap() : void {
-	add_action( 'init', __NAMESPACE__ . '\\register_scorer_role' );
+	add_action( 'init', __NAMESPACE__ . '\\register_scorer_roles' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
+	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
+	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
+	add_action( 'handle_bulk_actions-edit-submission', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
+	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
+	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 }
 
 /**
- * Register scoring_panel role.
+ * Register scoring panelist and panelist lead roles.
  *
  * @return void
  */
-function register_scorer_role() : void {
+function register_scorer_roles() : void {
 	$roles = get_option( 'wikimedia_contest_roles' ) ?: [];
 
-	if ( ! $roles[ USER_ROLE ] !== null ) {
+	if ( ! isset( $roles[ PANELIST_USER_ROLE ] ) ) {
 		wpcom_vip_add_role(
-			USER_ROLE,
+			PANELIST_USER_ROLE,
 			__( 'Scoring Panel', 'wikimedia-contest-admin' ),
 			array_merge(
 				get_role( 'contributor' )->capabilities,
@@ -109,8 +121,25 @@ function register_scorer_role() : void {
 				]
 			)
 		);
+		$roles[ PANELIST_USER_ROLE ] = 1;
+		update_option( 'wikimedia_contest_roles', $roles );
+	}
 
-		$roles[ USER_ROLE ] = 1;
+	if ( ! isset( $roles[ PANEL_LEAD_USER_ROLE ] ) ) {
+		wpcom_vip_add_role(
+			PANEL_LEAD_USER_ROLE,
+			__( 'Scoring Panelist Lead', 'wikimedia-contest-admin' ),
+			array_merge(
+				get_role( 'editor' )->capabilities,
+				[
+					'score_submissions' => true,
+					'assign_scorers' => true,
+					'promote_submissions' => true,
+				]
+			)
+		);
+
+		$roles[ PANEL_LEAD_USER_ROLE ] = 1;
 		update_option( 'wikimedia_contest_roles', $roles );
 	}
 }
@@ -132,7 +161,7 @@ function register_scoring_menu_pages() : void {
 		'scoring-queue',
 		__NAMESPACE__ . '\\render_scoring_queue',
 		'dashicons-yes-alt',
-		3
+		3.5
 	);
 
 	add_submenu_page(
@@ -332,4 +361,98 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
 	foreach ( $comments as $comment ) {
 		wp_set_comment_status( $comment->comment_ID, 'hold' );
 	}
+}
+
+/**
+ * Update bulk actions available for scorers in the submissions list table.
+ *
+ * @param [] $bulk_actions Items available in the bulk actions dropdown.
+ * @return [] Updated bulk actions array.
+ */
+function add_bulk_assignment_controls( $bulk_actions ) {
+
+	if ( current_user_can( 'assign_scorers' ) && in_array( get_post_status(), SCORING_STATUSES, true ) ) {
+		$scoring_panel =
+		$assignment_dropdown = [];
+
+		foreach ( get_scoring_panel_members() as $user ) {
+			$assignment_dropdown[ "assign-{$user->ID}" ] = sprintf(
+				__( 'Assign %s', 'wikimedia-contest-admin' ),
+				$user->display_name
+			);
+		}
+
+		$bulk_actions[ __( 'Assign to', 'wikimedia-contest-admin' ) ] = $assignment_dropdown;
+
+		$bulk_actions['remove-assignees'] = __( 'Remove assignees', 'wikimedia-contest-admin' );
+	}
+
+	if ( ! current_user_can( 'edit_submissions' ) ) {
+		unset( $bulk_actions['edit'] );
+		unset( $bulk_actions['trash'] );
+	}
+
+	return $bulk_actions;
+}
+
+/**
+ * Allow panelist leads to see the bulk action checkboxes.
+ *
+ * The bulk actions functionality is normally only exposed to users with the
+ * edit-posts cap. This ensures that even users who can't edit posts, but can
+ * assign scorers, can use these controls.
+ *
+ * @param bool $show Whether to show the bulk actions checkbox.
+ * @param WP_Post $post Post being rendered.
+ * @return bool Whether to show the bulk checkbox.
+ */
+function show_bulk_actions_cb_for_panelist_leads( $show, $post ) {
+	if ( in_array( $post->post_status, SCORING_STATUSES, true ) && current_user_can( 'assign_scorers' ) ) {
+		$show = true;
+	}
+
+	return $show;
+}
+
+/**
+ * Handle user-initiated bustom bulk actions.
+ *
+ * @param string $return_url URL of the page to return to after completion.
+ * @param string $action Name of action being performed.
+ * @param int[] $post_ids Array of IDs of posts checked.
+ */
+function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
+
+	if ( strpos( $action, 'assign-' ) === 0 ) {
+		$user_id = intval( substr( $action, 7 ) );
+
+		if ( in_array( $user_id, wp_list_pluck( get_scoring_panel_members(), 'ID' ), true ) ) {
+			foreach ( $post_ids as $post_id ) {
+				$assignees = get_post_meta( $post_id, 'assignees' ) ?: [];
+				$assignees[] = $user_id;
+
+				delete_post_meta( $post_id, 'assignees' );
+				foreach ( array_unique( array_filter( $assignees ) ) as $assignee ) {
+					add_post_meta( $post_id, 'assignees', $assignee );
+				}
+			}
+		}
+	}
+
+	if ( $action === 'remove-assignees' ) {
+		foreach ( $post_ids as $post_id ) {
+			delete_post_meta( $post_id, 'assignees' );
+		}
+	}
+
+	wp_safe_redirect( $return_url );
+}
+
+/**
+ * Get all members of the scoring panel.
+ *
+ * @return WP_User[] All users with the scoring panel or panelist lead roles.
+ */
+function get_scoring_panel_members() {
+	return get_users( [ 'role__in' => [ PANELIST_USER_ROLE, PANEL_LEAD_USER_ROLE ] ] );
 }
