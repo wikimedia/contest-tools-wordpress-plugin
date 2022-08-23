@@ -31,8 +31,8 @@ Submitters\bootstrap();
 require_once __DIR__ . '/inc/screening-results.php';
 Screening_Results\bootstrap();
 
-require_once __DIR__ . '/inc/scoring-panel.php';
-Scoring_Panel\bootstrap();
+require_once __DIR__ . '/inc/scoring.php';
+Scoring\bootstrap();
 
 require_once __DIR__ . '/inc/assets.php';
 Assets\bootstrap();

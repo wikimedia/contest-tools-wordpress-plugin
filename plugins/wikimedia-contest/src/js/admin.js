@@ -5,3 +5,4 @@
  */
 
 require( './admin/screeners-interface' );
+require( './admin/scoring-interface' );
