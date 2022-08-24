@@ -74,6 +74,15 @@ function register_submission_custom_post_type() {
  */
 function register_submission_custom_post_statuses() {
 
+	// Rename "draft" to "screening".
+	global $wp_post_statuses;
+	$wp_post_statuses['draft']->label = __( 'Screening', 'wikimedia-contest-admin' );
+	$wp_post_statuses['draft']->label_count = _n_noop(
+		'Screening <span class="count">(%s)</span>',
+		'Screening <span class="count">(%s)</span>',
+		'wikimedia-contest-admin'
+	);
+
 	// Ineligible.
 	register_post_status( 'ineligible', [
 		'label'                     => _x( 'Ineligible', 'post' ),
