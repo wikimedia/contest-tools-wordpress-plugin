@@ -83,7 +83,7 @@ if ( count( $flags ?? [] ) ) {
 ?>
 
 <div class="card">
-	<h3><?php esc_html_e( 'Creation Process', 'wikimedia-contest-admin' ); ?></h3>
+	<h3><?php esc_html_e( 'Creation Process (answers from the submission form)', 'wikimedia-contest-admin' ); ?></h3>
 	<dl>
 		<?php foreach ( $creation_process as $key => $value ) : ?>
 			<dt><?php echo "<b>" . esc_html( $flag_labels[ $key ] ) . "</b>"; ?></dt>
@@ -93,14 +93,14 @@ if ( count( $flags ?? [] ) ) {
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Technical explanation of sound creation', 'wikimedia-contest-admin' ); ?></h2>
+	<h2><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h2>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Brief explanation of the inspiration behind this entry', 'wikimedia-contest-admin' ); ?></h2>
+	<h2><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h2>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>

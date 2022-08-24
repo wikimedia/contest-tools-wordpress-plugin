@@ -8,49 +8,11 @@
 use Wikimedia_Contest\Screening_Results;
 
 /**
- * Technical explanation provided by submitter in entry form.
- *
- * @var string
- */
-$explanation_creation = get_post_meta( $post_id, 'explanation_creation', true ) ?: '';
-
-/**
- * Explanation of the inspiration behind the submission, provided by submitter in entry form.
- *
- * @var string
- */
-$explanation_inspiration = get_post_meta( $post_id, 'explanation_inspiration', true ) ?: '';
-
-/**
  * Yes/no answers from the creation process.
  *
  * @var [] Key => value for all fields.
  */
 $creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
-
-/**
- * Audio file.
- *
- * @var string
- */
-$audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
-
-/**
- * Audio file meta details.
- *
- * @var string
- */
-$audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
-
-/**
- * Screening results, including automatically assigned "yellow flags".
- *
- * @var []
- */
-$screening_results = Screening_Results\get_screening_results( $post_id );
-
-$available_flags = Screening_Results\get_available_flags();
-$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );
 
 ?>
 <div id="screening-interface" class="wrap">
@@ -65,7 +27,7 @@ $flags = array_intersect( $screening_results['flags'], array_keys( $available_fl
 		<div class="carded_content_container">
 			<div class="card">
 				<?php wp_nonce_field( 'screen-submission', '_screen_submission_nonce' ); ?>
-				<h3><?php esc_html_e( 'Moderation flags', 'wikimedia-contest-admin' ); ?></h3>
+				<h3><?php esc_html_e( 'Screening flags', 'wikimedia-contest-admin' ); ?></h3>
 				<p class="description">
 					<?php esc_html_e(
 						'If any of these flags are checked, the submission is INELIGIBLE.',
