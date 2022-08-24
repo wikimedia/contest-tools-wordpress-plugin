@@ -30,8 +30,11 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 			'singular' => __( 'Sound Logo Entry', 'wikimedia-contest-admin' ),
 			'plural' => __( 'Sound Logo Entries', 'wikimedia-contest-admin' ),
 			'screen' => 'edit-submission-scoring-queue',
+			'post_type' => 'submission',
 			'ajax' => false,
 		] );
+
+		$this->screen->post_type = 'submission';
 	}
 
 	/**
@@ -49,16 +52,20 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		$per_page = $this->get_items_per_page( 'edit_submissions_per_page', 20 );
 		$paged = absint( $_REQUEST['paged'] ?? 1 );
 
+		add_filter( 'pre_get_posts', [ $this, '_add_assignees_meta_query' ] );
+
 		// Set up global WP_Query vars.
-		query_posts( [
+		wp_edit_posts_query( [
 			'post_type' => 'submission',
-			'post_status' => \Wikimedia_Contest\Scoring\SCORING_STATUSES,
+			'post_status' => get_site_option( 'contest_status' ) ?: 'scoring_phase_1',
 			'per_page' => $per_page ?? 20,
 			'orderby' => $_REQUEST['orderby'] ?? 'date',
 			'order' => $_REQUEST['order'] ?? 'desc',
 			'paged' => $_REQUEST['paged'] ?? 1,
 			'cache_results' => false,
 		] );
+
+		remove_filter( 'pre_get_posts', [ $this, '_add_assignees_meta_query' ] );
 
 		// phpcs:enable HM.Security.NonceVerification.Recommended
 		// phpcs:enable HM.Security.ValidatedSanitizedInput.MissingUnslash
@@ -75,12 +82,33 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	}
 
 	/**
+	 * Return only the submissions which the current users is assigned to.
+	 *
+	 * @param WP_Query $wp_query Main query on the scoring queue list table.
+	 */
+	function _add_assignees_meta_query( $wp_query ) {
+
+		// Admins and scoring panel leads can see all posts.
+		if ( current_user_can( 'assign_scorers' ) ) {
+			return;
+		}
+
+		$wp_query->set( 'meta_query', [
+			[
+				'key' => 'assignees',
+				'value' => get_current_user_id(),
+			]
+		] );
+	}
+
+	/**
 	 * Get a list of columns.
 	 *
 	 * @return [] Array of column slugs to titles.
 	 */
 	function get_columns() {
 		return [
+			'cb' => '<input type="checkbox">',
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
 			'col_scoring_results' => __( 'Scoring Results', 'wikimedia-contest-admin' ),
@@ -125,9 +153,9 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 *
 	 * @return [] Empty array - no bulk actions available in this view.
 	 */
-	function get_bulk_actions() {
-		return [];
-	}
+	//function get_bulk_actions() {
+		//return apply_filters( 'bulk_actions-edit-submission-scoring-queue', [] );
+	//}
 
 	/**
 	 * Render the submission ID column.
