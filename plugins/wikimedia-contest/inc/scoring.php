@@ -96,8 +96,8 @@ function bootstrap() : void {
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
 	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
 	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'handle_bulk_actions-edit-submission', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
+	add_action( 'handle_bulk_actions-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 }
 
@@ -184,12 +184,35 @@ function render_scoring_queue() : void {
 	$list_table = new Scoring_Queue_List_Table();
 	$list_table->prepare_items();
 
+	// Hook into the list-tables API for running actions.
+	$current_action = $list_table->current_action();
+	$current_screen = $list_table->screen;
+
+	if ( ! empty( $current_action )  ) {
+
+		// Run through the handle_bulk_actions filter; this can be used to add
+		// messages to the redirect url.
+		$return_url = apply_filters(
+			"handle_bulk_actions-{$current_screen->id}",
+			admin_url( 'admin.php?page=scoring-queue' ),
+			$current_action,
+			array_map( 'intval', (array) $_REQUEST['post'] ),
+		);
+
+		wp_safe_redirect( $return_url );
+	}
+
+
 	echo '<div id="scoring-queue" class="wrap">';
 	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Scoring Queue', 'wikimedia-contest-admin' ) . '</h1>';
 	echo '<hr class="wp-header-end">';
 
+	echo '<form action="" method="GET">';
+	echo '<input type="hidden" name="page" value="scoring-queue" />';
+
 	$list_table->display();
 
+	echo '</form>';
 	echo '</div>';
 }
 
