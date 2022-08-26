@@ -181,6 +181,35 @@ function register_scoring_menu_pages() : void {
  */
 function render_scoring_queue() : void {
 	require_once __DIR__ . '/class-scoring-queue-list-table.php';
+
+	// If any success messages exist, render them here.
+	if ( ! empty( $_REQUEST['success'] ) ) {
+		$count = intval( $_REQUEST['count'] );
+
+		switch( $_REQUEST['success'] ):
+		case 'assign':
+
+			$user = get_user_by( 'id', $_REQUEST['user'] );
+			$message = sprintf(
+				/* translators: 1. number of submissions affected, 2. scoring panelist's name. */
+				__( 'Assigned %d submissions to %s', 'wikimedia-contest-admin' ),
+				$count,
+				$user->display_name ?? 'a scorer'
+			);
+			break;
+		case 'remove-assignees':
+			$message = sprintf(
+				/* translators: number of submissions affected. */
+				__( 'Removed all assignees from %d submissions', 'wikimedia-contest-admin' ),
+				$count
+			);
+		endswitch;
+
+			if ( ! empty( $message ) ) {
+				echo '<div id="message" class="updated notice is-dismissible"><p>' .  $message . '</p></div>';
+			}
+	}
+
 	$list_table = new Scoring_Queue_List_Table();
 	$list_table->prepare_items();
 
@@ -460,12 +489,29 @@ function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
 				}
 			}
 		}
+
+		$return_url = add_query_arg(
+			[
+				'success' => 'assign',
+				'user' => $user_id,
+				'count' => count( $post_ids )
+			],
+			$return_url
+		);
 	}
 
 	if ( $action === 'remove-assignees' ) {
 		foreach ( $post_ids as $post_id ) {
 			delete_post_meta( $post_id, 'assignees' );
 		}
+
+		$return_url = add_query_arg(
+			[
+				'success' => 'remove-assignees',
+				'count' => count( $post_ids )
+			],
+			$return_url
+		);
 	}
 
 	wp_safe_redirect( $return_url );
