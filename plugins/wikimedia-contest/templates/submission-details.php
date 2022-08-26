@@ -14,28 +14,25 @@ $custom_post_statuses = get_post_stati( [
 	'internal' => false,
 ], 'objects' );
 
-$submission_details_keys = [
-	'Identifiers' => [
-		'unique_code' => "Unique Code",
-		'unique_number' => "Unique Number",
-	],
-	'Participant Info' => [
+$fields_labels = [
+	'participant_info' => [
 		'submitter_name' => "Submitter Name",
 		'submitter_email' => "Submitter Email",
 		'submitter_phone' => "Submitter Phone",
 		'submitter_wiki_user' => "Submitter Wiki Username",
 		'submitter_country' => "Submitter Country",
-		'submitter_gender' => "Submitter gender"
+		'submitter_gender' => "Submitter Gender"
 	],
-	'Additional Audio Info' => [
-		'audio_file_meta' => "Audio File Metadata",
+	'access_info' => [
+		'source_url' => "Source URL",
+		'ip' => "IP Address",
+		'user_agent' => "User Agent",
 	],
 ];
 
 $screening_comments = get_comments( [
 	'post_id' => $submission_id,
 	'orderby' => 'comment_date',
-	'order' => 'ASC',
 	'type' => 'workflow',
 	'agent' => 'screening_comment',
 ]);
@@ -47,12 +44,11 @@ $scoring_comments = get_comments( [
 ]);
 
 ?>
-
 <div class="card">
 	<h3>Participant info</h3>
 	<ul>
 		<?php
-			foreach ( $submission_details_keys['Participant Info'] as $key => $label ) {
+			foreach ( $fields_labels['participant_info'] as $key => $label ) {
 				if ( isset( $submission_meta[$key] ) ) {
 					echo "<li><b>$label</b>: {$submission_meta[$key][0]}</li>";
 				}
@@ -65,25 +61,12 @@ $scoring_comments = get_comments( [
 	<h3>Additional info</h3>
 	<ul>
 		<?php
-			echo "<li><b>Submission status</b>: {$submission_post->post_status}</li>";
+			global $wp_post_statuses;
+			echo '<li><b>Submission status</b>: ' . $wp_post_statuses[ $submission_post->post_status ]->label . '</li>';
 			echo "<li><b>Date</b>: {$submission_post->post_date}</li>";
-			foreach ( $submission_details_keys['Identifiers'] as $key => $label ) {
-				if ( isset( $submission_meta[$key] ) ) {
-					echo "<li><b>$label</b>: {$submission_meta[$key][0]}</li>";
-				}
-			}
-		?>
-	</ul>
-</div>
-
-<div class="card">
-	<h3>Audio Metadata</h3>
-	<ul>
-		<?php
-			foreach ( $submission_details_keys['Additional Audio Info'] as $key => $label ) {
-				$audio_meta = unserialize( $submission_meta[$key][0] );
-				foreach ( $audio_meta as $key => $value ) {
-					echo "<li><b>$key</b>: {$value}</li>";
+			foreach ( $fields_labels['access_info'] as $key => $label ) {
+				if ( isset( $gf_entry[ $key ] ) ) {
+					echo "<li><b>$label</b>: {$gf_entry[$key]}</li>";
 				}
 			}
 		?>
@@ -104,7 +87,7 @@ $scoring_comments = get_comments( [
 </div>
 
 <div class="card fullcard">
-	<h3>Screening Log</h3>
+	<h3>Screening History</h3>
 	<?php
 		foreach ( $screening_comments as $comment ) {
 			$comment_meta = get_comment_meta( $comment->comment_ID );
@@ -120,7 +103,7 @@ $scoring_comments = get_comments( [
 </div>
 
 <div class="card">
-	<h3>Scoring Log</h3>
+	<h3>Scoring History</h3>
 	<?php
 		foreach ( $scoring_comments as $comment ) {
 			$comment_meta = get_comment_meta( $comment->comment_ID );
