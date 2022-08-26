@@ -89,7 +89,6 @@ function contest_status_field_content() {
 
 	$custom_post_statuses = get_post_stati( [
 		'_builtin' => false,
-		'internal' => false,
 	], 'objects' );
 	foreach ( $custom_post_statuses as $key => $custom_status ) {
 		?>
