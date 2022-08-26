@@ -9,6 +9,7 @@
 
 namespace Wikimedia_Contest;
 
+use HM\Workflows;
 use Wikimedia_Contest\Scoring;
 use WP_Posts_List_Table;
 
@@ -107,12 +108,18 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * @return [] Array of column slugs to titles.
 	 */
 	function get_columns() {
-		return [
+		$columns = [
 			'cb' => '<input type="checkbox">',
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
 			'col_scoring_results' => __( 'Scoring Results', 'wikimedia-contest-admin' ),
 		];
+
+		if ( current_user_can( 'assign_scorers' ) ) {
+			$columns['assignees'] =  __( 'Assignees', 'wikimedia-contest-admin' );
+		}
+
+		return $columns;
 	}
 
 	/**
