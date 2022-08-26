@@ -87,22 +87,20 @@ function contest_status_section_content() {
 function contest_status_field_content() {
 	$contest_status = get_site_option( 'contest_status' );
 
-	$contest_statuses = [
-		'scoring_phase_1' => __( 'Scoring Phase 1', 'wikimedia-contest-admin' ),
-		'scoring_phase_2' => __( 'Scoring Phase 2', 'wikimedia-contest-admin' ),
-		'scoring_phase_3' => __( 'Scoring Phase 3', 'wikimedia-contest-admin' ),
-	];
-
-	foreach ( $contest_statuses as $status => $label ) {
+	$custom_post_statuses = get_post_stati( [
+		'_builtin' => false,
+		'internal' => false,
+	], 'objects' );
+	foreach ( $custom_post_statuses as $key => $custom_status ) {
 		?>
 		<label>
 			<input
 				type="radio"
 				name="contest_status"
-				value="<?php echo esc_attr( $status ); ?>"
-				<?php checked( $contest_status, $status ); ?>
+				value="<?php echo esc_attr( $key ); ?>"
+				<?php checked( $contest_status, $custom_status->name ); ?>
 			>
-			<?php echo esc_html( $label ); ?>
+			<?php echo esc_html( $custom_status->label ); ?>
 		</label>
 		<br/>
 		<?php
