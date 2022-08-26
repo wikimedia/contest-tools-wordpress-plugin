@@ -99,6 +99,7 @@ function bootstrap() : void {
 	add_action( 'handle_bulk_actions-edit-submission', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
+	add_action( 'pre_get_posts', __NAMESPACE__ . '\\register_meta_orderby' );
 }
 
 /**
@@ -532,4 +533,27 @@ function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
  */
 function get_scoring_panel_members() {
 	return get_users( [ 'role__in' => [ PANELIST_USER_ROLE, PANEL_LEAD_USER_ROLE ] ] );
+}
+
+/*
+ * Register meta_orderby for the phase queue list table.
+ *
+ * @param WP_Query $wp_query The WP_Query object.
+ *
+ * @return void
+ */
+function register_meta_orderby( $query ) : void {
+	$orderby = $query->get( 'orderby');
+
+	$custom_post_statuses = get_post_stati( [
+		'_builtin' => false,
+		'internal' => false,
+	], 'objects' );
+
+	foreach ( $custom_post_statuses as $custom_post_status ) {
+		if ( "col_{$custom_post_status->name}_score" == $orderby ) {
+			$query->set('meta_key','score_' . $custom_post_status->name);
+			$query->set('orderby','meta_value_num');
+		}
+	}
 }
