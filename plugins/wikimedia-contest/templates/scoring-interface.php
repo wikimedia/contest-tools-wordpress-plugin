@@ -9,17 +9,8 @@ use Wikimedia_Contest\Scoring;
 use const Wikimedia_Contest\Scoring\SCORING_CRITERIA;
 
 // Retrieve, if it exists, past scoring results for the current user.
-$user_score = Scoring\get_user_score( $post_id, get_current_user_id() );
-if ( $user_score !== null ) {
-	// Calculate score sum for each category.
-	foreach ( SCORING_CRITERIA as $category_id => $value ) {
-		foreach ( $value['criteria'] as $criteria_id => $criteria_label ) {
-			$current_score = $user_score['criteria']["scoring_criteria_{$category_id}_{$criteria_id}"];
-			$user_score['category_sum'][ $category_id ]['sum'] += $current_score;
-			$user_score['category_sum'][ $category_id ]['item_count']++;
-		}
-	}
-}
+$score_given = Scoring\get_submission_score_given_by_user( $post_id, get_current_user_id() );
+$score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user_id() );
 
 ?>
 
@@ -53,9 +44,8 @@ if ( $user_score !== null ) {
 							<th class="col--a"><?php echo esc_html( sprintf( $value['label'], $value['weight'] * 100 ) ); ?></th>
 							<th class="col--b">
 								<?php
-									if ( $user_score !== null ) {
-										$category_score = round( $user_score['category_sum'][ $category_id ]['sum'] / $user_score['category_sum'][ $category_id ]['item_count'], 1 );
-										esc_html_e( "{$category_score} / 10" );
+									if ( $score_given_weighted !== null ) {
+										esc_html_e( round($score_given_weighted['by_category'][ $category_id ], 2) . " / 10" );
 									} else {
 										esc_html_e( '-' );
 									}
@@ -76,7 +66,7 @@ if ( $user_score !== null ) {
 									type='number'
 									min='0'
 									max='10'
-									value='<?php echo esc_attr( $user_score['criteria']["scoring_criteria_{$category_id}_{$criteria_id}"] ); ?>'
+									value='<?php echo esc_attr( $score_given['criteria']["scoring_criteria_{$category_id}_{$criteria_id}"] ); ?>'
 								>
 								&nbsp;/10
 							</td>
@@ -88,19 +78,11 @@ if ( $user_score !== null ) {
 
 					<thead>
 						<tr>
-							<th class="col--a"><?php esc_html_e( 'Weighted Score', 'wikimedia-contest-admin' ); ?></th>
+							<th class="col--a"><?php esc_html_e( 'Weighted Score' ); ?></th>
 							<th class="col--b">
 								<?php
-
-									if ( $user_score !== null ) {
-
-										// Calculate the weighted score here as it's only related to user scoring and does not affect overall sorting by score.
-										foreach ( SCORING_CRITERIA as $category_id => $value ) {
-											$weighted_sum += ( $user_score['category_sum'][ $category_id ]['sum'] / $user_score['category_sum'][ $category_id ]['item_count'] ) * $value['weight'];
-										}
-
-										// Displaying it rounded, as this value only reflects this specific user scoring.
-										esc_html_e( round( $weighted_sum, 1) . " / 10" );
+									if ( $score_given_weighted !== null ) {
+										esc_html_e( round( $score_given_weighted['overall'], 2) . " / 10" );
 									} else {
 										esc_html_e( '-' );
 									}
@@ -117,7 +99,7 @@ if ( $user_score !== null ) {
 
 				<h3><?php esc_html_e( 'Any additional thoughts about this sound logo', 'wikimedia-contest-admin' ); ?></h3>
 
-				<textarea class="widefat" name="additional_scoring_comment" cols="30" rows="10"><?php esc_html_e( $user_score['additional_comment'] ); ?></textarea>
+				<textarea class="widefat" name="additional_scoring_comment" cols="30" rows="10"><?php esc_html_e( $score_given['additional_comment'] ); ?></textarea>
 
 				<br/><br/><hr/><br/>
 
