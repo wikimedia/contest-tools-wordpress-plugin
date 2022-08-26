@@ -19,6 +19,11 @@ use WP_Posts_List_Table;
  * "Submissions" for admins.
  */
 class Scoring_Queue_List_Table extends WP_Posts_List_Table {
+	/**
+	 * This property stores the phase of submissions to be displayed.
+	 * @var string
+	 */
+	public $scoring_phase;
 
 	/**
 	 * Override some base controls from the parent class.
@@ -34,6 +39,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 			'ajax' => false,
 		] );
 
+		$this->scoring_phase = get_site_option( 'contest_status' ) ?: 'scoring_phase_1';
 		$this->screen->post_type = 'submission';
 	}
 
@@ -57,7 +63,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		// Set up global WP_Query vars.
 		wp_edit_posts_query( [
 			'post_type' => 'submission',
-			'post_status' => get_site_option( 'contest_status' ) ?: 'scoring_phase_1',
+			'post_status' => $this->scoring_phase,
 			'per_page' => $per_page ?? 20,
 			'orderby' => $_REQUEST['orderby'] ?? 'date',
 			'order' => $_REQUEST['order'] ?? 'desc',
@@ -107,12 +113,23 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * @return [] Array of column slugs to titles.
 	 */
 	function get_columns() {
-		return [
+		$columns = [
 			'cb' => '<input type="checkbox">',
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
-			'col_scoring_results' => __( 'Scoring Results', 'wikimedia-contest-admin' ),
+			'col_user_score' => __( 'Your scoring results	', 'wikimedia-contest-admin' ),
 		];
+
+		$custom_post_statuses = get_post_stati( [
+			'_builtin' => false,
+			'internal' => false,
+		], 'objects' );
+
+		if ( current_user_can( 'assign_scorers' ) ) {
+			$columns["col_phase_score"] = '"' . $custom_post_statuses[ $this->scoring_phase ]->label . "\" Phase Score";
+		}
+
+		return $columns;
 	}
 
 	/**
@@ -121,10 +138,16 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * @return [] Array of column slugs to query arg.
 	 */
 	function get_sortable_columns() {
-		return [
+		$columns = [
 			'col_submission_id' => 'title',
 			'col_submission_date' => [ 'date', true ],
 		];
+
+		if ( current_user_can( 'assign_scorers' ) ) {
+			$columns['col_phase_score'] = [ "col_{$this->scoring_phase}_score", true ];
+		}
+
+		return $columns;
 	}
 
 	/**
@@ -140,8 +163,8 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		}
 
 		$actions = [
-			'screen' => '<a href="' . Scoring\get_scoring_link( $item->ID ) . '">' .
-				esc_html__( 'Scoring sound logo submission' ) .
+			'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
+				esc_html__( 'Score sound logo submission' ) .
 				'</a>',
 		];
 
@@ -178,5 +201,21 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		);
 		// phpcs:enable HM.Security.EscapeOutput.OutputNotEscaped
 		// phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Render the score given by user column on the phase.
+	 */
+	function column_col_user_score( $item ) {
+		$score = Scoring\get_submission_score( $item->ID, get_current_user_id() )['overall'];
+		echo is_numeric( $score ) ? round( $score, 2) : '-';
+	}
+
+	/**
+	 * Render the phase score column.
+	 */
+	function column_col_phase_score( $item ) {
+		$score = get_post_meta( $item->ID, "score_{$this->scoring_phase}", true );
+		echo is_numeric( $score ) ? round( $score, 2) : '-';
 	}
 }
