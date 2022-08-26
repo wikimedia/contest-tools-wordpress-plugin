@@ -156,15 +156,6 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	}
 
 	/**
-	 * Remove bulk actions.
-	 *
-	 * @return [] Empty array - no bulk actions available in this view.
-	 */
-	//function get_bulk_actions() {
-		//return apply_filters( 'bulk_actions-edit-submission-scoring-queue', [] );
-	//}
-
-	/**
 	 * Render the submission ID column.
 	 */
 	function column_col_submission_id() {
