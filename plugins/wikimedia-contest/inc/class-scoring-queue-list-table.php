@@ -41,7 +41,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * Prepare the current query for display.
 	 */
 	function prepare_items() {
-		global $wpdb, $wp_query, $per_page;
+		global $wpdb, $wp_query, $per_page, $avail_post_stati;
 
 		// phpcs:disable HM.Security.NonceVerification.Recommended
 		// phpcs:disable HM.Security.ValidatedSanitizedInput.MissingUnslash
@@ -55,7 +55,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		add_filter( 'pre_get_posts', [ $this, '_add_assignees_meta_query' ] );
 
 		// Set up global WP_Query vars.
-		wp_edit_posts_query( [
+		$avail_post_stati = wp_edit_posts_query( [
 			'post_type' => 'submission',
 			'post_status' => get_site_option( 'contest_status' ) ?: 'scoring_phase_1',
 			'per_page' => $per_page ?? 20,
