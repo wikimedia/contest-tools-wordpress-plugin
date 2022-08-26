@@ -7,6 +7,8 @@
 
 use Wikimedia_Contest\Screening_Results;
 
+$post_id = $post_id ?? get_the_ID();
+
 /**
  * Technical explanation provided by submitter in entry form.
  *
@@ -93,14 +95,14 @@ if ( count( $flags ?? [] ) ) {
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h2>
+	<h3><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h2>
+	<h3><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>
