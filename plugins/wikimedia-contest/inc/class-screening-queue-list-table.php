@@ -70,7 +70,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 * Prepare the current query for display.
 	 */
 	function prepare_items() {
-		global $wpdb, $wp_query, $per_page;
+		global $wpdb, $wp_query, $avail_post_stati, $per_page;
 
 		// phpcs:disable HM.Security.NonceVerification.Recommended
 		// phpcs:disable HM.Security.ValidatedSanitizedInput.MissingUnslash
@@ -85,7 +85,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
 
 		// Set up global WP_Query vars.
-		wp_edit_posts_query( [
+		query_posts( [
 			'post_type' => 'submission',
 			'post_status' => 'draft',
 			'per_page' => $per_page ?? 20,
@@ -102,6 +102,8 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 
 		// Ensure not to mess with any other queries on the page.
 		remove_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
+
+		$avail_post_stati = [ 'draft' ];
 
 		$this->set_pagination_args( [
 			'total_items' => $wp_query->found_posts,
