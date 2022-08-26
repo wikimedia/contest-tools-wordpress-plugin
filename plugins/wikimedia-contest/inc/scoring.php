@@ -339,7 +339,7 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
  *  @var array  'criteria'           All scores given by user to each scoring fields.
  *  @var string 'additional_comment' Free-text message field for additional comments.
   */
-  function get_submission_score_given_by_user( $submission_id, $user_id ) : ?array {
+function get_submission_score_given_by_user( $submission_id, $user_id ) : ?array {
 	$comments = get_comments( [
 		'post_id' => $submission_id,
 		'type' => COMMENT_TYPE,
@@ -551,9 +551,9 @@ function register_meta_orderby( $query ) : void {
 	], 'objects' );
 
 	foreach ( $custom_post_statuses as $custom_post_status ) {
-		if ( "col_{$custom_post_status->name}_score" == $orderby ) {
-			$query->set('meta_key','score_' . $custom_post_status->name);
-			$query->set('orderby','meta_value_num');
+		if ( $orderby === "col_{$custom_post_status->name}_score" ) {
+			$query->set( 'meta_key','score_' . $custom_post_status->name );
+			$query->set( 'orderby','meta_value_num' );
 		}
 	}
 }

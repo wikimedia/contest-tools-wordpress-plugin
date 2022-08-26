@@ -78,7 +78,7 @@ $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user
 
 					<thead>
 						<tr>
-							<th class="col--a"><?php esc_html_e( 'Weighted Score', 'wikimedia-contest-admin' ); ?></th>
+							<th class="col--a"><?php esc_html_e( 'Weighted Score' ); ?></th>
 							<th class="col--b">
 								<?php
 									if ( $score_given_weighted !== null ) {

@@ -164,7 +164,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 
 		$actions = [
 			'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
-				esc_html__( 'Scoring sound logo submission' ) .
+				esc_html__( 'Score sound logo submission' ) .
 				'</a>',
 		];
 
