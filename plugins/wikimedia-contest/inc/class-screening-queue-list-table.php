@@ -121,7 +121,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		return [
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
-			'col_screening_results' => __( 'Screening Results', 'wikimedia-contest-admin' ),
+			'col_screening_results' => __( 'Flags', 'wikimedia-contest-admin' ),
 		];
 	}
 
@@ -171,7 +171,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 * Render the submission ID column.
 	 */
 	function column_col_submission_id() {
-		the_title();
+		echo '<b>' . get_the_title() . '</b>';
 	}
 
 	/**
@@ -205,7 +205,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 				if ( isset( $available_flags[ $flag ] ) ) {
 					echo '<span class="moderation-flag moderation-flag--yellow">' . esc_html( $available_flags[ $flag ] ) . '</span>';
 				}
-				if ( isset( $moderation_flags[ $flag ] ) ) {
+				if ( isset( $moderation_flags[ $flag ] ) && current_user_can( 'view_screening_results' ) ) {
 					echo '<span class="moderation-flag moderation-flag--red">' . esc_html( $moderation_flags[ $flag ] ) . '</span>';
 				}
 			}
