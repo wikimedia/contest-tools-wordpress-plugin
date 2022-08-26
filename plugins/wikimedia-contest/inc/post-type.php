@@ -31,7 +31,7 @@ function bootstrap() {
 function register_submission_custom_post_type() {
 
 	$labels = [
-		'name'                => _x( 'Submissions', 'Post Type General Name', 'wikimedia-contest' ),
+		'name'                => _x( 'Submissions Queue - Current Contest Phase: ', 'Post Type General Name', 'wikimedia-contest' ) . get_site_option( 'contest_status' ),
 		'singular_name'       => _x( 'Submission', 'Post Type Singular Name', 'wikimedia-contest' ),
 		'menu_name'           => __( 'Submissions', 'wikimedia-contest' ),
 		'all_items'           => __( 'All Submissions', 'wikimedia-contest' ),
@@ -87,20 +87,11 @@ function register_submission_custom_post_statuses() {
 	register_post_status( 'ineligible', [
 		'label'                     => _x( 'Ineligible', 'post' ),
 		'public'                    => true,
+		'internal'                  => true,
 		'exclude_from_search'       => false,
 		'show_in_admin_all_list'    => true,
 		'show_in_admin_status_list' => true,
 		'label_count'               => _n_noop( 'Ineligible <span class="count">(%s)</span>', 'Ineligible <span class="count">(%s)</span>' ),
-	] );
-
-	// Eligible.
-	register_post_status( 'eligible', [
-		'label'                     => _x( 'Eligible', 'post' ),
-		'public'                    => true,
-		'exclude_from_search'       => false,
-		'show_in_admin_all_list'    => true,
-		'show_in_admin_status_list' => true,
-		'label_count'               => _n_noop( 'Eligible <span class="count">(%s)</span>', 'Eligible <span class="count">(%s)</span>' ),
 	] );
 
 	// Scoring phase 1.
@@ -131,6 +122,16 @@ function register_submission_custom_post_statuses() {
 		'show_in_admin_all_list'    => true,
 		'show_in_admin_status_list' => true,
 		'label_count'               => _n_noop( 'Scoring phase 3 <span class="count">(%s)</span>', 'Scoring phase 3 <span class="count">(%s)</span>' ),
+	] );
+
+	// Finalist.
+	register_post_status( 'finalist', [
+		'label'                     => _x( 'Finalist', 'post' ),
+		'public'                    => true,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => true,
+		'show_in_admin_status_list' => true,
+		'label_count'               => _n_noop( 'Finalist <span class="count">(%s)</span>', 'Finalist <span class="count">(%s)</span>' ),
 	] );
 }
 
