@@ -378,6 +378,9 @@ function handle_entry_submission( $entry, $form ) {
 
 	// Store the submission post ID in the entry.
 	gform_add_meta($entry['id'], 'submission_post_id', $post_data['post_id'], $entry['form_id']);
+
+	// Store the Entry ID of the submission in the post meta data.
+	update_post_meta( $post_data['post_id'], '_gf_entry_id', $entry['id'] );
 }
 
 /**

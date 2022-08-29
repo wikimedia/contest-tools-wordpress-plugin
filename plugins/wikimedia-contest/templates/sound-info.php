@@ -9,11 +9,8 @@ use Wikimedia_Contest\Screening_Results;
 
 $post_id = $post_id ?? get_the_ID();
 
-// Get Gravity Form Entry ID looking for meta key 'submission_post_id' on the entry.
-$gf_entry = array_shift( \GFAPI::get_entries(
-	0, // search all forms as we don't have submission form ID set anywhere.
-	[ 'field_filters' => [ [ 'key' => 'submission_post_id', 'value' => $submission_id ] ] ],
-));
+// Gravity Forms Entry ID stored on post meta.
+$gf_entry_id = get_post_meta( $post_id, '_gf_entry_id', true );
 
 /**
  * Technical explanation provided by submitter in entry form.
@@ -86,7 +83,7 @@ $flag_labels = array(
 ?>
 
 <div class="card">
-	<h3>Entry ID: <?php echo esc_html( $gf_entry['id'] ); ?></h3>
+	<h3>Entry ID: <?php echo esc_html( is_numberic( $gf_entry_id ) ? $gf_entry_id : '-' ); ?></h3>
 	<audio controls><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
 
 	<br><br><hr>
