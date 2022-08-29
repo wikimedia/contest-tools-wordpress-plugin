@@ -23,11 +23,6 @@ $fields_labels = [
 		'submitter_country' => "Submitter Country",
 		'submitter_gender' => "Submitter Gender"
 	],
-	'access_info' => [
-		'source_url' => "Source URL",
-		'ip' => "IP Address",
-		'user_agent' => "User Agent",
-	],
 ];
 
 $screening_comments = get_comments( [
@@ -64,11 +59,6 @@ $scoring_comments = get_comments( [
 			global $wp_post_statuses;
 			echo '<li><b>Submission status</b>: ' . $wp_post_statuses[ $submission_post->post_status ]->label . '</li>';
 			echo "<li><b>Date</b>: {$submission_post->post_date}</li>";
-			foreach ( $fields_labels['access_info'] as $key => $label ) {
-				if ( isset( $gf_entry[ $key ] ) ) {
-					echo "<li><b>$label</b>: {$gf_entry[$key]}</li>";
-				}
-			}
 		?>
 	</ul>
 </div>
