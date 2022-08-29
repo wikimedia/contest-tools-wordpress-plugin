@@ -19,6 +19,8 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0 );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
+
+	add_filter( 'display_post_states', __NAMESPACE__ . '\\display_post_states_in_list_table', 10, 2 );
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 }
@@ -149,6 +151,30 @@ function add_submission_box() : void {
 		'normal',
 		'high'
 	);
+}
+
+/**
+ * Update the display of the post status in the "All Submissions" list.
+ *
+ * If filtering by a status, then there's no reason to show this state.
+ * Otherwise, showing the state in the title column makes it easier to see what
+ * the table is showing.
+ *
+ * @param [] $post_states Array of key => display text.
+ * @param WP_Post $post Post being displayed.
+ * @return [] Updated array of post states to display.
+ */
+function display_post_states_in_list_table( $post_states, $post ) {
+	if ( $post->post_type !== SLUG ) {
+		return $post_states;
+	}
+
+	if ( ! empty ( $_GET['post_status'] ) ) {
+		return [];
+	}
+
+	$post_status = get_post_status( $post );
+	return [ $post_status => get_post_status_object( $post_status )->label ];
 }
 
 /**
