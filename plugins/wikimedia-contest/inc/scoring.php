@@ -156,14 +156,15 @@ function register_scorer_roles() : void {
 function register_scoring_menu_pages() : void {
 
 	$current_contest_phase_option = get_site_option( 'contest_status' );
-	$custom_post_statuses = get_post_stati( [
-		'_builtin' => false,
-		'internal' => false,
-	], 'objects' );
+
+	// Don't show the Scoring menu item if the contest phase isn't a scoring phase.
+	if ( ! in_array( $current_contest_phase_option, \Wikimedia_Contest\Scoring\SCORING_STATUSES ) ) {
+		return;
+	}
 
 	add_menu_page(
-		sprintf( '<b>%s</b> Queue', $custom_post_statuses[ $current_contest_phase_option ]->label ),
-		sprintf( '<b>%s</b> Queue', $custom_post_statuses[ $current_contest_phase_option ]->label ),
+		sprintf( '<b>%s</b> Queue', \Wikimedia_Contest\Network_Settings\CONTEST_PHASES[ $current_contest_phase_option ] ),
+		sprintf( '<b>%s</b> Queue', \Wikimedia_Contest\Network_Settings\CONTEST_PHASES[ $current_contest_phase_option ] ),
 		'score_submissions',
 		'scoring-queue',
 		__NAMESPACE__ . '\\render_scoring_queue',
@@ -187,6 +188,14 @@ function register_scoring_menu_pages() : void {
  * @return void
  */
 function render_scoring_queue() : void {
+
+	$current_contest_phase_option = get_site_option( 'contest_status' );
+
+	// Don't render the Scoring Queue if the contest phase isn't a scoring phase.
+	if ( ! in_array( $current_contest_phase_option, \Wikimedia_Contest\Scoring\SCORING_STATUSES ) ) {
+		return;
+	}
+
 	require_once __DIR__ . '/class-scoring-queue-list-table.php';
 
 	// If any success messages exist, render them here.
