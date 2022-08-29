@@ -51,7 +51,6 @@ function bootstrap() {
 function custom_merge_tags( $merge_tags, $form_id, $fields, $element_id ) : array {
 	$merge_tags[] = [ 'label' => 'User submission count', 'tag' => '{user_submission_count}' ];
 	$merge_tags[] = [ 'label' => 'Audio file name', 'tag' => '{audio_file_name}' ];
-	$merge_tags[] = [ 'label' => 'Submission unique number', 'tag' => '{submission_unique_number}' ];
 	return $merge_tags;
 }
 
@@ -74,7 +73,6 @@ function replace_merge_tags( $text, $form, $entry, $url_encode, $esc_html, $nl2b
 		$tag_list = [
 			'{user_submission_count}',
 			'{audio_file_name}',
-			'{submission_unique_number}',
 		];
 
 		// Check if the text contains any of the merge tags.
@@ -110,7 +108,6 @@ function replace_merge_tags( $text, $form, $entry, $url_encode, $esc_html, $nl2b
 
 		// Setting up all merge tags.
 		$merge_tags = [
-			'{submission_unique_number}'  => $submission_post_meta['unique_number'][0],
 			'{user_submission_count}' => $number_of_posts,
 			'{audio_file_name}'  => $audio_file_meta['name'],
 		];
@@ -309,9 +306,6 @@ function handle_entry_submission( $entry, $form ) {
 		( $formatted_entry['submitter_country_other'] ?? 'other' ) :
 		$formatted_entry['submitter_country'] ?? '';
 
-	// Placeholder for submission unique code - TBD.
-	$submission_unique_code = md5( microtime( true ) );
-
 	// Contributing authors: any data in fields matching this label format.
 	$contributing_authors = array_filter(
 		array_values(
@@ -341,24 +335,12 @@ function handle_entry_submission( $entry, $form ) {
 		'source_urls' => $formatted_entry['source_urls'],
 	];
 
-	// Generating a six-digit random number from 100000 to 999999 that's not yet used.
-	do {
-		$submission_unique_number = rand ( 100000, 999999 );
-		$existing_post = get_posts( [
-			'post_type' => 'submission',
-			'meta_key' => 'unique_number',
-			'meta_value' => $submission_unique_number,
-		] );
-	} while ( ! empty( $existing_post ) );
-
 	$submission_post = [
-		'post_title'                  => sprintf( 'Submission %s', $submission_unique_code ),
+		'post_title'                  => sprintf( 'Submission %s', $entry['id'] ),
 		'post_status'                 => 'draft',
 		'post_author'                 => 1,
 		'post_type'                   => 'submission',
 		'meta_input'                  => [
-			'unique_code'             => $submission_unique_code,
-			'unique_number'           => $submission_unique_number,
 			'submitter_name'          => $formatted_entry['submitter_name'] ?? '',
 			'submitter_email'         => $formatted_entry['submitter_email'] ?? '',
 			'submitter_wiki_user'     => $formatted_entry['submitter_wiki_user'] ?? '',
@@ -371,6 +353,7 @@ function handle_entry_submission( $entry, $form ) {
 			'explanation_inspiration' => $formatted_entry['explanation_inspiration'] ?? '',
 			'audio_file'              => $formatted_entry['audio_file'] ?? null,
 			'audio_file_meta'         => $audio_file_meta,
+			'_gf_entry_id'            => $entry['id'],
 		],
 	];
 
@@ -378,9 +361,6 @@ function handle_entry_submission( $entry, $form ) {
 
 	// Store the submission post ID in the entry.
 	gform_add_meta($entry['id'], 'submission_post_id', $post_data['post_id'], $entry['form_id']);
-
-	// Store the Entry ID of the submission in the post meta data.
-	update_post_meta( $post_data['post_id'], '_gf_entry_id', $entry['id'] );
 }
 
 /**
