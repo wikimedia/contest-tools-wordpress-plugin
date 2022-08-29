@@ -19,10 +19,12 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0 );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
 	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
-
 	add_filter( 'display_post_states', __NAMESPACE__ . '\\display_post_states_in_list_table', 10, 2 );
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
+	add_action( 'admin_footer-edit.php', __NAMESPACE__ . '\\custom_inline_edit');
+	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_useless_boxes');
+	add_filter( 'post_row_actions', __NAMESPACE__ . '\\customize_row_actions', 10, 1 );
 }
 
 /**
@@ -38,6 +40,7 @@ function register_submission_custom_post_type() {
 		'menu_name'           => __( 'Submissions', 'wikimedia-contest' ),
 		'all_items'           => __( 'All Submissions', 'wikimedia-contest' ),
 		'view_item'           => __( 'View Submission', 'wikimedia-contest' ),
+		'edit_item'           => __( 'Submission Details', 'wikimedia-contest' ),
 	];
 
 	$args = [
@@ -231,4 +234,70 @@ function submission_metabox_html( $post ) : void {
 	echo '<div class="carded_content_container">';
 	include __DIR__ . '/../templates/submission-details.php';
 	echo '</div>';
+}
+
+/**
+ * Remove useless boxes to avoid confusing the users.
+ *
+ * @return void
+ */
+function remove_useless_boxes() : void {
+	remove_meta_box( 'submitdiv', 'submission', 'side' );
+	remove_meta_box( 'commentsdiv', 'submission', 'side' );
+}
+
+/**
+ * Add custom status as options on inline edit.
+ *
+ * @return void
+ */
+function custom_inline_edit() : void {
+	echo "<script>
+	jQuery(document).ready( function() {";
+
+	// Truncating the status list to only include the custom statuses.
+	echo "jQuery('select[name=\"_status\"]').find('option').remove();";
+
+	// Adding Screening
+	echo "jQuery('select[name=\"_status\"]').append(\"<option value='draft'>Screening</option>\");";
+
+	// Adding only the custom statuses to the status list.
+	$custom_statuses = get_post_stati( [
+		'_builtin' => false,
+	], 'objects' );
+	foreach ( $custom_statuses as $status ) {
+		echo "jQuery('select[name=\"_status\"]').append(\"<option value='{$status->name}'>{$status->label}</option>\");";
+	}
+
+	// Removing Date and Password fields from the inline edit.
+	echo "
+	jQuery('span:contains(\"Password\")').each(function (i) {
+		jQuery(this).parent().parent().remove();
+	});
+	jQuery('span:contains(\"Date\")').each(function (i) {
+		jQuery(this).parent().remove();
+	});
+	jQuery('.inline-edit-date').each(function (i) {
+		jQuery(this).remove();
+	});";
+
+	echo "});
+	</script>";
+}
+
+/**
+ * Customize the row actions for the submission post type.
+ *
+ * @param array $actions
+ *
+ * @return array
+ */
+function customize_row_actions( $actions ) : array {
+	if ( get_post_type() === 'submission' ) {
+		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
+		unset( $actions['view'] );
+		unset( $actions['trash'] );
+	}
+
+	return $actions;
 }

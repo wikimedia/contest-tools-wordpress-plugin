@@ -94,10 +94,10 @@ function bootstrap() : void {
 	add_action( 'init', __NAMESPACE__ . '\\register_scorer_roles' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
-	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
-	add_action( 'handle_bulk_actions-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
+	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_actions' );
+	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_actions' );
+	add_action( 'handle_bulk_actions-edit-submission', __NAMESPACE__ . '\\handle_bulk_actions', 10, 3 );
+	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_actions', 10, 3 );
 	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\register_meta_orderby' );
 }
@@ -218,6 +218,14 @@ function render_scoring_queue() : void {
 				/* translators: number of submissions affected. */
 				__( 'Removed all assignees from %d submissions', 'wikimedia-contest-admin' ),
 				$count
+			);
+		case 'change-status':
+			$new_status = $_REQUEST['new-status'];
+			$message = sprintf(
+				/* translators: number of submissions affected. */
+				__( 'Changed status of %d submissions to %s', 'wikimedia-contest-admin' ),
+				$count,
+				$new_status
 			);
 		endswitch;
 
@@ -508,28 +516,41 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
  * @param [] $bulk_actions Items available in the bulk actions dropdown.
  * @return [] Updated bulk actions array.
  */
-function add_bulk_assignment_controls( $bulk_actions ) {
+function add_bulk_actions( $bulk_actions ) {
 
-	if ( current_user_can( 'assign_scorers' ) && in_array( get_post_status(), SCORING_STATUSES, true ) ) {
+	if ( current_user_can( 'assign_scorers' ) ) {
+
+		// Assignment bulk action.
 		$scoring_panel =
 		$assignment_dropdown = [];
-
 		foreach ( get_scoring_panel_members() as $user ) {
 			$assignment_dropdown[ "assign-{$user->ID}" ] = sprintf(
 				__( 'Assign %s', 'wikimedia-contest-admin' ),
 				$user->display_name
 			);
 		}
-
 		$bulk_actions[ __( 'Assign to', 'wikimedia-contest-admin' ) ] = $assignment_dropdown;
-
 		$bulk_actions['remove-assignees'] = __( 'Remove assignees', 'wikimedia-contest-admin' );
+
+		// Status change bulk action.
+
+		// Adding screening manually.
+		$bulk_actions[ __( 'Submission status', 'wikimedia-contest-admin' ) ]["change-status-draft"] = __( 'Change to Screening', 'wikimedia-contest-admin' );
+
+		// Adding other custom statuses.
+		$custom_statuses = get_post_stati( [
+			'_builtin' => false,
+		], 'objects' );
+		foreach ( $custom_statuses as $status ) {
+			$bulk_actions[ __( 'Submission status', 'wikimedia-contest-admin' ) ]["change-status-{$status->name}"] = sprintf(
+				__( 'Change to %s', 'wikimedia-contest-admin' ),
+				$status->label
+			);
+		}
 	}
 
-	if ( ! current_user_can( 'edit_submissions' ) ) {
-		unset( $bulk_actions['edit'] );
-		unset( $bulk_actions['trash'] );
-	}
+	$bulk_actions['edit'] = 'Bulk Edit';
+	unset( $bulk_actions['trash'] );
 
 	return $bulk_actions;
 }
@@ -560,7 +581,11 @@ function show_bulk_actions_cb_for_panelist_leads( $show, $post ) {
  * @param string $action Name of action being performed.
  * @param int[] $post_ids Array of IDs of posts checked.
  */
-function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
+function handle_bulk_actions( $return_url, $action, $post_ids ) {
+
+	if ( ! current_user_can( 'assign_scorers' ) ) {
+		return;
+	}
 
 	if ( strpos( $action, 'assign-' ) === 0 ) {
 		$user_id = intval( substr( $action, 7 ) );
@@ -599,6 +624,32 @@ function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
 			],
 			$return_url
 		);
+	}
+
+	if ( strpos( $action, 'change-status' ) === 0 ) {
+		$new_status = substr( $action, 14 );
+
+		$post_statuses = get_post_stati( [
+			'_builtin' => false,
+		], 'objects' );
+
+		if ( array_key_exists( $new_status, $post_statuses ) ) {
+			foreach ( $post_ids as $post_id ) {
+				wp_update_post( [
+					'ID' => $post_id,
+					'post_status' => $new_status,
+				] );
+			}
+
+			$return_url = add_query_arg(
+				[
+					'success' => 'change-status',
+					'new-status' => $post_statuses[ $new_status ]->label,
+					'count' => count( $post_ids )
+				],
+				$return_url
+			);
+		}
 	}
 
 	wp_safe_redirect( $return_url );
