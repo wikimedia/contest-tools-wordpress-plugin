@@ -158,7 +158,7 @@ function register_scoring_menu_pages() : void {
 	$current_contest_phase_option = get_site_option( 'contest_status' );
 
 	// Don't show the Scoring menu item if the contest phase isn't a scoring phase.
-	if ( ! in_array(\Wikimedia_Contest\Scoring\SCORING_STATUSES, $current_contest_phase_option) ) {
+	if ( ! in_array( $current_contest_phase_option, \Wikimedia_Contest\Scoring\SCORING_STATUSES ) ) {
 		return;
 	}
 
@@ -192,7 +192,7 @@ function render_scoring_queue() : void {
 	$current_contest_phase_option = get_site_option( 'contest_status' );
 
 	// Don't render the Scoring Queue if the contest phase isn't a scoring phase.
-	if ( ! in_array(\Wikimedia_Contest\Scoring\SCORING_STATUSES, $current_contest_phase_option) ) {
+	if ( ! in_array( $current_contest_phase_option, \Wikimedia_Contest\Scoring\SCORING_STATUSES ) ) {
 		return;
 	}
 
