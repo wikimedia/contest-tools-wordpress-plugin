@@ -8,6 +8,17 @@
 namespace Wikimedia_Contest\Network_Settings;
 
 /**
+ * Statuses and labels for contest phases.
+ *
+ * @var array
+ */
+const CONTEST_PHASES = [
+	'scoring_phase_1' => 'Scoring Phase 1',
+	'scoring_phase_2' => 'Scoring Phase 2',
+	'scoring_phase_3' => 'Scoring Phase 3',
+];
+
+/**
  * Bootstrap network functionality.
  */
 function bootstrap() {
@@ -85,22 +96,19 @@ function contest_status_section_content() {
  * Contest status field content.
  */
 function contest_status_field_content() {
+
 	$contest_status = get_site_option( 'contest_status' );
 
-	$custom_post_statuses = get_post_stati( [
-		'_builtin' => false,
-		'internal' => false,
-	], 'objects' );
-	foreach ( $custom_post_statuses as $key => $custom_status ) {
+	foreach ( CONTEST_PHASES as $key => $phase_label ) {
 		?>
 		<label>
 			<input
 				type="radio"
 				name="contest_status"
 				value="<?php echo esc_attr( $key ); ?>"
-				<?php checked( $contest_status, $custom_status->name ); ?>
+				<?php checked( $contest_status, $key ); ?>
 			>
-			<?php echo esc_html( $custom_status->label ); ?>
+			<?php echo esc_html( $phase_label ); ?>
 		</label>
 		<br/>
 		<?php
