@@ -13,7 +13,6 @@ namespace Wikimedia_Contest\Network_Settings;
  * @var array
  */
 const CONTEST_PHASES = [
-	'screening'       => 'Screening',
 	'scoring_phase_1' => 'Scoring Phase 1',
 	'scoring_phase_2' => 'Scoring Phase 2',
 	'scoring_phase_3' => 'Scoring Phase 3',
