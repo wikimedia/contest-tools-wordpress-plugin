@@ -64,7 +64,8 @@ function output_submissions_report() {
 	}
 
 	$output = fopen( 'php://output', 'w');
-	header( 'Content-Disposition: attachment; filename="Submission_Report_.csv"' );
+	$filename = 'Sound Logo Submission report ' . date( 'Y-m-d His' ) . '.csv';
+	header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $filename ) . '"' );
 
 	/*
 	 * Get a single post, just to properly format the headers row.
