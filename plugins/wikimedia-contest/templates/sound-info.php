@@ -83,7 +83,7 @@ $flag_labels = array(
 ?>
 
 <div class="card">
-	<h3>Entry ID: <?php echo esc_html( is_numberic( $gf_entry_id ) ? $gf_entry_id : '-' ); ?></h3>
+	<h3>Entry ID: <?php echo esc_html( is_numeric( $gf_entry_id ) ? $gf_entry_id : '-' ); ?></h3>
 	<audio controls><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
 
 	<br><br><hr>
