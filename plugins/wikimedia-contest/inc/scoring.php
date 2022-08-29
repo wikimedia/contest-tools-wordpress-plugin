@@ -96,8 +96,8 @@ function bootstrap() : void {
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
 	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
 	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'handle_bulk_actions-edit-submission', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
+	add_action( 'handle_bulk_actions-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
 	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\register_meta_orderby' );
 }
@@ -188,6 +188,35 @@ function register_scoring_menu_pages() : void {
  */
 function render_scoring_queue() : void {
 	require_once __DIR__ . '/class-scoring-queue-list-table.php';
+
+	// If any success messages exist, render them here.
+	if ( ! empty( $_REQUEST['success'] ) ) {
+		$count = intval( $_REQUEST['count'] );
+
+		switch( $_REQUEST['success'] ):
+		case 'assign':
+
+			$user = get_user_by( 'id', $_REQUEST['user'] );
+			$message = sprintf(
+				/* translators: 1. number of submissions affected, 2. scoring panelist's name. */
+				__( 'Assigned %d submissions to %s', 'wikimedia-contest-admin' ),
+				$count,
+				$user->display_name ?? 'a scorer'
+			);
+			break;
+		case 'remove-assignees':
+			$message = sprintf(
+				/* translators: number of submissions affected. */
+				__( 'Removed all assignees from %d submissions', 'wikimedia-contest-admin' ),
+				$count
+			);
+		endswitch;
+
+			if ( ! empty( $message ) ) {
+				echo '<div id="message" class="updated notice is-dismissible"><p>' .  $message . '</p></div>';
+			}
+	}
+
 	$list_table = new Scoring_Queue_List_Table();
 	$list_table->prepare_items();
 
@@ -197,12 +226,35 @@ function render_scoring_queue() : void {
 		'internal' => false,
 	], 'objects' );
 
+	// Hook into the list-tables API for running actions.
+	$current_action = $list_table->current_action();
+	$current_screen = $list_table->screen;
+
+	if ( ! empty( $current_action )  ) {
+
+		// Run through the handle_bulk_actions filter; this can be used to add
+		// messages to the redirect url.
+		$return_url = apply_filters(
+			"handle_bulk_actions-{$current_screen->id}",
+			admin_url( 'admin.php?page=scoring-queue' ),
+			$current_action,
+			array_map( 'intval', (array) $_REQUEST['post'] ),
+		);
+
+		wp_safe_redirect( $return_url );
+	}
+
+
 	echo '<div id="scoring-queue" class="wrap">';
 	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Scoring Queue - Contest Phase:', 'wikimedia-contest-admin' ) . ' <b>' . $custom_post_statuses[ $current_contest_phase_option ]->label  . '</b></h1>';
 	echo '<hr class="wp-header-end">';
 
+	echo '<form action="" method="GET">';
+	echo '<input type="hidden" name="page" value="scoring-queue" />';
+
 	$list_table->display();
 
+	echo '</form>';
 	echo '</div>';
 }
 
@@ -515,12 +567,29 @@ function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
 				}
 			}
 		}
+
+		$return_url = add_query_arg(
+			[
+				'success' => 'assign',
+				'user' => $user_id,
+				'count' => count( $post_ids )
+			],
+			$return_url
+		);
 	}
 
 	if ( $action === 'remove-assignees' ) {
 		foreach ( $post_ids as $post_id ) {
 			delete_post_meta( $post_id, 'assignees' );
 		}
+
+		$return_url = add_query_arg(
+			[
+				'success' => 'remove-assignees',
+				'count' => count( $post_ids )
+			],
+			$return_url
+		);
 	}
 
 	wp_safe_redirect( $return_url );

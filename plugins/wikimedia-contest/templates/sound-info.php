@@ -7,6 +7,14 @@
 
 use Wikimedia_Contest\Screening_Results;
 
+$post_id = $post_id ?? get_the_ID();
+
+// Get Gravity Form Entry ID looking for meta key 'submission_post_id' on the entry.
+$gf_entry = array_shift( \GFAPI::get_entries(
+	0, // search all forms as we don't have submission form ID set anywhere.
+	[ 'field_filters' => [ [ 'key' => 'submission_post_id', 'value' => $submission_id ] ] ],
+));
+
 /**
  * Technical explanation provided by submitter in entry form.
  *
@@ -43,6 +51,18 @@ $audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
 $audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
 
 /**
+ * Create more user-friendly labels for audio file metadata.
+ */
+$audio_file_meta_labels = [
+	'name' => '<b>File Name</b>:</b> %s',
+	'type' => '<b>Audio Format</b>: %s',
+	'size' => '<b>File size</b>: %u B',
+	'sampleRate' => '<b>Sample Rate</b>: %u Hz',
+	'numberOfChannels' => '<b>Audio Channels Found</b>: %u',
+	'duration' => '<b>Audio Duration</b>: %.2fs',
+];
+
+/**
  * Screening results, including automatically assigned "yellow flags".
  *
  * @var []
@@ -65,21 +85,31 @@ $flag_labels = array(
 );
 ?>
 
-<div class="card fullcard">
-	<h2><?php echo get_the_title( $post_id ); ?></h2>
+<div class="card">
+	<h3>Entry ID: <?php echo esc_html( $gf_entry['id'] ); ?></h3>
 	<audio controls><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
+
+	<br><br><hr>
+
+	<h3>Audio Metadata</h3>
+	<ul>
+		<?php
+			foreach ( $audio_file_meta as $key => $value ) {
+				echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+			}
+		?>
+	</ul>
 </div>
 
 <?php
-if ( count( $flags ?? [] ) ) {
-	echo '<div class="card">';
-	echo '<h3>' . esc_html__( 'Automated flags', 'wikimedia-contest-admin' ) . '</h3>';
-
-	foreach ( $flags as $flag ) {
-		echo '<span class="moderation-flag moderation-flag--yellow">' . $available_flags[ $flag ] . '</span>';
+	if ( count( $flags ?? [] ) ) {
+		echo '<div class="card">';
+		echo '<h3>' . esc_html__( 'Automated flags', 'wikimedia-contest-admin' ) . '</h3>';
+		foreach ( $flags as $flag ) {
+			echo '<span class="moderation-flag moderation-flag--yellow">' . $available_flags[ $flag ] . '</span>';
+		}
+		echo '</div>';
 	}
-	echo '</div>';
-}
 ?>
 
 <div class="card">
@@ -93,14 +123,14 @@ if ( count( $flags ?? [] ) ) {
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h2>
+	<h3><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
 </div>
 
 <div class="card">
-	<h2><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h2>
+	<h3><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>
