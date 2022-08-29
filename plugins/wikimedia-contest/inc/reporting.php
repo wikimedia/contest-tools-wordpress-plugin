@@ -8,7 +8,7 @@
 namespace Wikimedia_Contest\Reporting;
 
 use Wikimedia_Contest\Scoring;
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 use WP_Query;
 
 function bootstrap() {
@@ -113,7 +113,7 @@ function format_submission_for_csv( $submission ) {
 		'Country' => $submission->submitter_country,
 	];
 
-	foreach ( Screening_Results\get_screening_details( $submission->ID ) as $i => $comment ) {
+	foreach ( Screening\get_screening_details( $submission->ID ) as $i => $comment ) {
 		$index = $i + 1;
 		$flags = json_decode( $comment['comment_content'] )->flags ?? [];
 

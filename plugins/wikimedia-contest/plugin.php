@@ -28,8 +28,8 @@ Post_Type\bootstrap();
 require_once __DIR__ . '/inc/submitters.php';
 Submitters\bootstrap();
 
-require_once __DIR__ . '/inc/screening-results.php';
-Screening_Results\bootstrap();
+require_once __DIR__ . '/inc/screening.php';
+Screening\bootstrap();
 
 require_once __DIR__ . '/inc/scoring.php';
 Scoring\bootstrap();

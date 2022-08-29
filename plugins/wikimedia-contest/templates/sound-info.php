@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 
 $post_id = $post_id ?? get_the_ID();
 
@@ -67,8 +67,8 @@ $audio_file_meta_labels = [
  *
  * @var []
  */
-$screening_results = Screening_Results\get_screening_results( $post_id );
-$available_flags = Screening_Results\get_available_flags();
+$screening_results = Screening\get_screening_results( $post_id );
+$available_flags = Screening\get_available_flags();
 
 if ( $screening_results['flags'] !== null ) {
 	$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );

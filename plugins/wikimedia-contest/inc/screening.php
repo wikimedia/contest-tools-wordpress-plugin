@@ -8,7 +8,7 @@
  * @package wikimedia-contest;
  */
 
-namespace Wikimedia_Contest\Screening_Results;
+namespace Wikimedia_Contest\Screening;
 
 use Wikimedia_Contest\Post_Type;
 use Wikimedia_Contest\Screening_Queue_List_Table;

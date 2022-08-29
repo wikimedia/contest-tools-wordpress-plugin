@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 
 /**
  * Yes/no answers from the creation process.
@@ -36,7 +36,7 @@ $creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
 				</p>
 				<ul>
 				<?php
-				foreach ( Screening_Results\get_moderation_flags() as $key => $value ) {
+				foreach ( Screening\get_moderation_flags() as $key => $value ) {
 					$id = sanitize_key( "option_{$key}" );
 					?>
 						<li>
