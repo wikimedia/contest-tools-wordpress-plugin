@@ -53,6 +53,17 @@ const SCORING_STATUSES = [
 ];
 
 /**
+ * How many scorers are needed for each of scoring phase.
+ *
+ * @var array
+ */
+const SCORERS_NEEDED_EACH_PHASE = [
+	'scoring_phase_1' => 2,
+	'scoring_phase_2' => 10,
+	'scoring_phase_3' => 12,
+];
+
+/**
  * Abstracting the score categories, weights and criteria.
  *
  * @var array
@@ -386,6 +397,7 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
 
 	// Update the submission overall weighted score for current contest phase.
 	$submission_current_phase_score = get_submission_score( $submission_id );
+	//var_dump($submission_id, $submission_current_phase_score);exit;
 	$current_contest_phase = get_site_option( 'contest_status' );
 	update_post_meta( $submission_id, 'score_' . $current_contest_phase, $submission_current_phase_score['overall'] );
 }
@@ -454,6 +466,23 @@ function get_submission_score( $submission_id, $user_id = null ) {
 	$comments = get_comments( $comment_search_args );
 	if ( empty( $comments ) ) {
 		return null;
+	}
+
+	//echo "<pre>";
+	//var_dump($comments);exit;
+
+	/*
+		Using the comments fetched to update the number of scorers that
+		already scored this submission, and the completion for the phase.
+	*/
+	if ( $user_id === null ) {
+		$current_contest_phase = get_site_option( 'contest_status' );
+
+		// Storing scorers count.
+		update_post_meta( $submission_id, "scorer_count_{$current_contest_phase}", count( $comments ) );
+
+		// Storing the reason between scorers count and needed scorers to allow sorting by this column.
+		update_post_meta( $submission_id, "score_completion_{$current_contest_phase}", count( $comments ) / SCORERS_NEEDED_EACH_PHASE[ $current_contest_phase ] );
 	}
 
 	$category_sum = [];
@@ -630,8 +659,11 @@ function register_meta_orderby( $query ) : void {
 
 	foreach ( $custom_post_statuses as $custom_post_status ) {
 		if ( $orderby === "col_{$custom_post_status->name}_score" ) {
-			$query->set( 'meta_key','score_' . $custom_post_status->name );
-			$query->set( 'orderby','meta_value_num' );
+			$query->set( 'meta_key', 'score_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
+		} elseif ( $orderby === "col_{$custom_post_status->name}_completion" ) {
+			$query->set( 'meta_key', 'score_completion_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
 		}
 	}
 }
