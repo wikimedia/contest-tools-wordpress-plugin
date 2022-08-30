@@ -240,13 +240,14 @@ function bulk_actions_notification() : void {
 
 				if ( in_array( $_REQUEST['new-status'], $possible_statuses ) ) {
 					$message = sprintf(
-						/* translators: number of submissions affected. */
+						/* translators: 1: number of submissions affected, 2: new status for the submission. */
 						__( 'Changed status of %d submissions to %s', 'wikimedia-contest-admin' ),
 						$count,
 						$_REQUEST['new-status']
 					);
 				} else {
 					$message = sprintf(
+						/* translators: invalid status for a submision. */
 						__( 'Error: <b>%s</b> is not a valid status', 'wikimedia-contest-admin' ),
 						$_REQUEST['new-status']
 					);
