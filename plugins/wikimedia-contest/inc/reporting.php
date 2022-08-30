@@ -114,7 +114,7 @@ function format_submission_for_csv( $submission ) {
 		'Country' => $submission->submitter_country,
 	];
 
-	foreach ( Screening\get_screening_details( $submission->ID ) as $i => $comment ) {
+	foreach ( array_slice( Screening\get_screening_details( $submission->ID ), 0, 3 ) as $i => $comment ) {
 		$index = $i + 1;
 		$flags = json_decode( $comment['comment_content'] )->flags ?? [];
 
