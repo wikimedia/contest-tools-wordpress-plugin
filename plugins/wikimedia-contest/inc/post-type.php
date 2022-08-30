@@ -23,8 +23,9 @@ function bootstrap() {
 	add_filter( 'manage_submission_posts_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 	add_action( 'admin_footer-edit.php', __NAMESPACE__ . '\\custom_inline_edit');
-	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_useless_boxes');
+	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_unused_boxes');
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\customize_row_actions', 10, 1 );
+
 }
 
 /**
@@ -237,11 +238,11 @@ function submission_metabox_html( $post ) : void {
 }
 
 /**
- * Remove useless boxes to avoid confusing the users.
+ * Remove unused boxes to avoid confusing the users.
  *
  * @return void
  */
-function remove_useless_boxes() : void {
+function remove_unused_boxes() : void {
 	remove_meta_box( 'submitdiv', 'submission', 'side' );
 	remove_meta_box( 'commentsdiv', 'submission', 'side' );
 }
@@ -252,37 +253,42 @@ function remove_useless_boxes() : void {
  * @return void
  */
 function custom_inline_edit() : void {
-	echo "<script>
-	jQuery(document).ready( function() {";
+?>
+	<script>
+		jQuery(document).ready( function() {
 
-	// Truncating the status list to only include the custom statuses.
-	echo "jQuery('select[name=\"_status\"]').find('option').remove();";
+			// Remove fields that are not needed on inline edit.
+			jQuery('span:contains("Password")').each(function (i) {
+				jQuery(this).parent().parent().remove();
+			});
+			jQuery('span:contains("Date")').each(function (i) {
+				jQuery(this).parent().remove();
+			});
+			jQuery('.inline-edit-date').each(function (i) {
+				jQuery(this).remove();
+			});
 
-	// Adding Screening
-	echo "jQuery('select[name=\"_status\"]').append(\"<option value='draft'>Screening</option>\");";
+			// Remove all status options.
+			jQuery('select[name="_status"]').find('option').remove();
 
-	// Adding only the custom statuses to the status list.
-	$custom_statuses = get_post_stati( [
-		'_builtin' => false,
-	], 'objects' );
-	foreach ( $custom_statuses as $status ) {
-		echo "jQuery('select[name=\"_status\"]').append(\"<option value='{$status->name}'>{$status->label}</option>\");";
-	}
+			// Manually add Screening status.
+			jQuery('select[name="_status"]').append("<option value='draft'>Screening</option>");
 
-	// Removing Date and Password fields from the inline edit.
-	echo "
-	jQuery('span:contains(\"Password\")').each(function (i) {
-		jQuery(this).parent().parent().remove();
-	});
-	jQuery('span:contains(\"Date\")').each(function (i) {
-		jQuery(this).parent().remove();
-	});
-	jQuery('.inline-edit-date').each(function (i) {
-		jQuery(this).remove();
-	});";
+			<?php
+				// Adding the custom statuses to the status list.
+				$custom_statuses = get_post_stati( [
+					'_builtin' => false,
+				], 'objects' );
+			?>
 
-	echo "});
-	</script>";
+			<?php foreach ( $custom_statuses as $status ) : ?>
+					jQuery('select[name="_status"]').append("<option value='<?php echo esc_attr( $status->name ) ?>'><?php echo esc_html( $status->label ) ?></option>");
+			<?php endforeach; ?>
+
+		});
+	</script>
+
+<?php
 }
 
 /**
