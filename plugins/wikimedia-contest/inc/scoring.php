@@ -330,6 +330,7 @@ function handle_scoring_results() : void {
 		'additional_comment' => $additional_comment,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_scoring_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
 	exit;

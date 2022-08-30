@@ -176,6 +176,7 @@ function handle_screening_results() {
 		'message' => $message_other,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 }
