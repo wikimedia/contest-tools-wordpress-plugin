@@ -47,6 +47,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function filter_posts_clauses( $sql_pieces ) {
 		global $wpdb;
 		$user_id = get_current_user_id();
+		$current_time = microtime( true );
 
 		$sql_pieces['join'] .= $wpdb->prepare( "
 			LEFT OUTER JOIN {$wpdb->comments}
@@ -55,6 +56,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 				AND {$wpdb->comments}.comment_agent = 'screening_result'
 				AND {$wpdb->comments}.user_id = %d
 			)
+			/* {$current_time} */
 			",
 			$user_id
 		);
@@ -70,7 +72,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 * Prepare the current query for display.
 	 */
 	function prepare_items() {
-		global $wpdb, $wp_query, $per_page;
+		global $wpdb, $wp_query, $avail_post_stati, $per_page;
 
 		// phpcs:disable HM.Security.NonceVerification.Recommended
 		// phpcs:disable HM.Security.ValidatedSanitizedInput.MissingUnslash
@@ -85,7 +87,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		add_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
 
 		// Set up global WP_Query vars.
-		wp_edit_posts_query( [
+		query_posts( [
 			'post_type' => 'submission',
 			'post_status' => 'draft',
 			'per_page' => $per_page ?? 20,
@@ -102,6 +104,8 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 
 		// Ensure not to mess with any other queries on the page.
 		remove_filter( 'posts_clauses', [ $this, 'filter_posts_clauses' ] );
+
+		$avail_post_stati = [ 'draft' ];
 
 		$this->set_pagination_args( [
 			'total_items' => $wp_query->found_posts,
@@ -121,7 +125,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		return [
 			'col_submission_id' => __( 'Submission ID', 'wikimedia-contest-admin' ),
 			'col_submission_date' => __( 'Submission Date', 'wikimedia-contest-admin' ),
-			'col_screening_results' => __( 'Screening Results', 'wikimedia-contest-admin' ),
+			'col_screening_results' => __( 'Flags', 'wikimedia-contest-admin' ),
 		];
 	}
 
@@ -171,7 +175,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 * Render the submission ID column.
 	 */
 	function column_col_submission_id() {
-		the_title();
+		echo '<b>' . get_the_title() . '</b>';
 	}
 
 	/**
@@ -205,7 +209,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 				if ( isset( $available_flags[ $flag ] ) ) {
 					echo '<span class="moderation-flag moderation-flag--yellow">' . esc_html( $available_flags[ $flag ] ) . '</span>';
 				}
-				if ( isset( $moderation_flags[ $flag ] ) ) {
+				if ( isset( $moderation_flags[ $flag ] ) && current_user_can( 'view_screening_results' ) ) {
 					echo '<span class="moderation-flag moderation-flag--red">' . esc_html( $moderation_flags[ $flag ] ) . '</span>';
 				}
 			}

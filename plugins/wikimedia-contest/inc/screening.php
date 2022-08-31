@@ -54,7 +54,7 @@ function bootstrap() {
 function register_screener_role() {
 	$roles = get_option( 'wikimedia_contest_roles' ) ?: [];
 
-	if ( ! isset( $roles['screener'] ) ) {
+	if ( ! isset( $roles['screener'] ) || $roles['screener'] < 2 ) {
 		wpcom_vip_add_role(
 			USER_ROLE,
 			__( 'Screener', 'wikimedia-contest-admin' ),
@@ -62,12 +62,16 @@ function register_screener_role() {
 				get_role( 'subscriber' )->capabilities,
 				[
 					'screen_submissions' => true,
-					'view_screened_submissions' => false,
+					'view_screening_results' => false,
 				]
 			)
 		);
 
-		$roles['screener'] = 1;
+		foreach ( [ 'administrator', 'scoring_panel_lead' ] as $role ) {
+			get_role( $role )->add_cap( 'view_screening_results' );
+		}
+
+		$roles['screener'] = 2;
 		update_option( 'wikimedia_contest_roles', $roles );
 	}
 }
