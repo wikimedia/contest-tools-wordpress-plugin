@@ -103,7 +103,7 @@ $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user
 
 				<br/><br/><hr/><br/>
 
-				<button type="submit" class="button-primary" id="scoring-submit">
+				<button type="submit" class="button-primary" id="scoring-submit" disabled>
 					<?php esc_html_e( 'Assign score to the submission', 'wikimedia-contest-admin' ); ?>
 				</button>
 
