@@ -5,6 +5,8 @@
  * @package wikimedia-contest
  */
 
+use Wikimedia_Contest\Screening;
+
 $submission_id = get_the_ID();
 $submission_post = get_post($submission_id);
 $submission_meta = get_post_meta( $submission_id );
@@ -25,12 +27,7 @@ $fields_labels = [
 	],
 ];
 
-$screening_comments = get_comments( [
-	'post_id' => $submission_id,
-	'orderby' => 'comment_date',
-	'type' => 'workflow',
-	'agent' => 'screening_comment',
-]);
+$screening_comments = Screening\get_screening_details( $submission_id );
 
 $scoring_comments = get_comments( [
 	'post_id' => $submission_id,
@@ -79,16 +76,37 @@ $scoring_comments = get_comments( [
 <div class="card fullcard">
 	<h3>Screening History</h3>
 	<?php
-		foreach ( $screening_comments as $comment ) {
-			$comment_meta = get_comment_meta( $comment->comment_ID );
+	foreach ( $screening_comments as $comment ) {
 
-			echo "<div class='card fullcard'>";
-			echo "<ul>";
-			echo "<li><b>Date</b>: {$comment->comment_date}</li>";
-			echo "<li><b>User</b>: {$comment->comment_author}</li>";
-			echo "</ul>";
-			echo "</div>";
+		if ( ! $comment['comment_author'] ) {
+			continue;
 		}
+
+		$comment_data = json_decode( $comment['comment_content'] );
+		$reasons = array_filter( array_merge( $comment_data->flags, [ $comment_data->message ] ) );
+		?>
+		<div class="card fullcard">
+			<ul>
+				<li><b>Date</b>: <?php echo esc_html( $comment['comment_date_gmt'] ); ?></li>
+				<li><b>User</b>: <?php echo esc_html( $comment['comment_author'] ); ?></li>
+				<li><b>Status</b>: <?php echo esc_html( $comment['comment_approved'] ); ?></li>
+				<?php
+				if ( count( $reasons ) ) {
+					echo wp_sprintf(
+						'<li><b>Reason</b>: %l</li>',
+						array_map(
+							function ( $flag ) {
+								return Screening\get_moderation_flags()[ $flag ] ?? '"' . $flag . '"';
+							},
+							$reasons
+						)
+					);
+				}
+				?>
+			</ul>
+		</div>
+		<?php
+	}
 	?>
 </div>
 
