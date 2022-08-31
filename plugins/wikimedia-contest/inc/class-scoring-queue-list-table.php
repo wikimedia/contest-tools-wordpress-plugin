@@ -220,8 +220,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	function column_col_scoring_completion( $item ) {
 		$scorer_count = get_post_meta( $item->ID, "scorer_count_{$this->scoring_phase}", true );
 		$scoring_phase_completion = get_post_meta( $item->ID, "score_completion_{$this->scoring_phase}", true );
-		//var_dump($scorer_count, $scoring_phase_completion);
-		echo sprintf( '%s complete - %d / %s scorers',
+		echo sprintf( '%s complete ( %d / %s scorers )',
 			round( $scoring_phase_completion * 100, 2 ) . "%",
 			$scorer_count,
 			\Wikimedia_Contest\Scoring\SCORERS_NEEDED_EACH_PHASE[ $this->scoring_phase ]

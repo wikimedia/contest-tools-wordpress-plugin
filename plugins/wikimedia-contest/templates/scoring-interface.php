@@ -12,11 +12,6 @@ use const Wikimedia_Contest\Scoring\SCORING_CRITERIA;
 $score_given = Scoring\get_submission_score_given_by_user( $post_id, get_current_user_id() );
 $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user_id() );
 
-// get and print all post metadata
-$post_meta = get_post_meta( $post_id );
-echo "<pre>";
-var_dump($post_meta);exit;
-
 ?>
 
 <div id="scoring-interface" class="wrap">
