@@ -450,7 +450,7 @@ function get_submission_score( $submission_id, $user_id = null ) {
 	$total_submission_score = 0;
 	foreach ( $comments as $comment ) {
 		$comment_score_content = json_decode( get_comment_meta( $comment->comment_ID, 'given_score', true ), true );
-		$score_weigthed_sum = 0;
+		$score_weighted_sum = 0;
 		$score_count++;
 		foreach ( SCORING_CRITERIA as $category_id => $value ) {
 			$category_weight = $value['weight'];
@@ -465,9 +465,9 @@ function get_submission_score( $submission_id, $user_id = null ) {
 				$single_score_category_sum[ $category_id ]['item_count']++;
 			}
 
-			$score_weigthed_sum += ( $category_sum / $category_item_count ) * $category_weight;
+			$score_weighted_sum += ( $category_sum / $category_item_count ) * $category_weight;
 		}
-		$total_submission_score += $score_weigthed_sum;
+		$total_submission_score += $score_weighted_sum;
 	}
 	$weighted_score = [];
 	$weighted_score['submission_score'] = $total_submission_score / $score_count;
