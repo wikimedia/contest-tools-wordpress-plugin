@@ -28,8 +28,8 @@ Post_Type\bootstrap();
 require_once __DIR__ . '/inc/submitters.php';
 Submitters\bootstrap();
 
-require_once __DIR__ . '/inc/screening-results.php';
-Screening_Results\bootstrap();
+require_once __DIR__ . '/inc/screening.php';
+Screening\bootstrap();
 
 require_once __DIR__ . '/inc/scoring.php';
 Scoring\bootstrap();
@@ -45,6 +45,9 @@ Gravity_Forms\bootstrap();
 
 require_once __DIR__ . '/inc/languages.php';
 Languages\bootstrap();
+
+require_once __DIR__ . '/inc/reporting.php';
+Reporting\bootstrap();
 
 require_once __DIR__ . '/inc/network-settings.php';
 Network_Settings\bootstrap();

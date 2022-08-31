@@ -7,7 +7,7 @@
 
 namespace Wikimedia_Contest\Post_Type;
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 
 const SLUG = 'submission';
 
@@ -208,7 +208,7 @@ function custom_submission_column( $column, $post_id ) : void {
 			break;
 
 		case 'screening_results':
-			$results = Screening_Results\get_screening_results( $post_id );
+			$results = Screening\get_screening_results( $post_id );
 
 			if ( ! empty( $results['decision'] ) ) {
 				foreach ( $results['decision'] as $decision ) {
