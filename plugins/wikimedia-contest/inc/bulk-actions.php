@@ -205,13 +205,13 @@ function bulk_actions_notification() : void {
 		return;
 	}
 
-	if ( ! empty( $_REQUEST['success'] ) ) {
-		$count = intval( $_REQUEST['count'] );
+	if ( ! empty( sanitize_text_field( $_REQUEST['success'] ) ) ) {
+		$count = intval( sanitize_text_field( $_REQUEST['count'] ) );
 
-		switch( $_REQUEST['success'] ):
+		switch( sanitize_text_field( $_REQUEST['success'] ) ):
 
 			case 'assign':
-				$user = get_user_by( 'id', $_REQUEST['user'] );
+				$user = get_user_by( 'id', sanitize_text_field( $_REQUEST['user'] ) );
 				$message = sprintf(
 					/* translators: 1. number of submissions affected, 2. scoring panelist's name. */
 					__( 'Assigned %d submissions to %s', 'wikimedia-contest-admin' ),
@@ -238,18 +238,18 @@ function bulk_actions_notification() : void {
 				}
 				$possible_statuses[] = 'Screening';
 
-				if ( in_array( $_REQUEST['new-status'], $possible_statuses ) ) {
+				if ( in_array( sanitize_text_field( $_REQUEST['new-status'] ), $possible_statuses ) ) {
 					$message = sprintf(
 						/* translators: 1: number of submissions affected, 2: new status for the submission. */
 						__( 'Changed status of %d submissions to %s', 'wikimedia-contest-admin' ),
 						$count,
-						$_REQUEST['new-status']
+						sanitize_text_field( $_REQUEST['new-status'] )
 					);
 				} else {
 					$message = sprintf(
 						/* translators: invalid status for a submision. */
 						__( 'Error: <b>%s</b> is not a valid status', 'wikimedia-contest-admin' ),
-						$_REQUEST['new-status']
+						sanitize_text_field( $_REQUEST['new-status'] )
 					);
 				}
 				break;
@@ -260,9 +260,9 @@ function bulk_actions_notification() : void {
 			echo '<div id="message" class="updated notice is-dismissible"><p>' .  $message . '</p></div>';
 		}
 
-	} elseif ( ! empty( $_REQUEST['error'] ) ) {
+	} elseif ( ! empty( sanitize_text_field( $_REQUEST['error'] ) ) ) {
 
-		switch( $_REQUEST['success'] ):
+		switch( sanitize_text_field( $_REQUEST['success'] ) ):
 
 			case 'change-status':
 				$message = sprintf(
