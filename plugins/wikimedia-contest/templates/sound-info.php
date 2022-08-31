@@ -91,8 +91,10 @@ $flag_labels = array(
 	<h3>Audio Metadata</h3>
 	<ul>
 		<?php
-			foreach ( $audio_file_meta as $key => $value ) {
-				echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+			if ( is_array( $audio_file_meta ) ) {
+				foreach ( $audio_file_meta as $key => $value ) {
+					echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+				}
 			}
 		?>
 	</ul>

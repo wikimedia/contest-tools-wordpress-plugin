@@ -53,6 +53,17 @@ const SCORING_STATUSES = [
 ];
 
 /**
+ * How many scorers are needed for each of scoring phase.
+ *
+ * @var array
+ */
+const SCORERS_NEEDED_EACH_PHASE = [
+	'scoring_phase_1' => 2,
+	'scoring_phase_2' => 10,
+	'scoring_phase_3' => 12,
+];
+
+/**
  * Abstracting the score categories, weights and criteria.
  *
  * @var array
@@ -352,7 +363,7 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
 	// Update the submission overall weighted score for current contest phase.
 	$submission_current_phase_score = get_submission_score( $submission_id );
 	$current_contest_phase = get_site_option( 'contest_status' );
-	update_post_meta( $submission_id, 'score_' . $current_contest_phase, $submission_current_phase_score['overall'] );
+	update_post_meta( $submission_id, 'score_' . $current_contest_phase, $submission_current_phase_score['submission_score'] );
 }
 
 /**
@@ -408,7 +419,6 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		'meta_query' => [
 			'key' => 'scoring_phase',
 			'value' => get_site_option( 'contest_status' ),
-			'compare' => '=',
 		],
 	];
 
@@ -421,24 +431,55 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		return null;
 	}
 
-	$category_sum = [];
+	/*
+		Using the comments fetched to update the number of scorers that
+		already scored this submission, and the completion for the phase.
+	*/
+	if ( $user_id === null ) {
+		$current_contest_phase = get_site_option( 'contest_status' );
+
+		// Storing scorers count.
+		update_post_meta( $submission_id, "scorer_count_{$current_contest_phase}", count( $comments ) );
+
+		// Storing the reason between scorers count and needed scorers to allow sorting by this column.
+		update_post_meta( $submission_id, "score_completion_{$current_contest_phase}", count( $comments ) / SCORERS_NEEDED_EACH_PHASE[ $current_contest_phase ] );
+	}
+
+	$score_count = 0;
+	$single_score_category_sum = [];
+	$total_submission_score = 0;
 	foreach ( $comments as $comment ) {
 		$comment_score_content = json_decode( get_comment_meta( $comment->comment_ID, 'given_score', true ), true );
+		$score_weighted_sum = 0;
+		$score_count++;
 		foreach ( SCORING_CRITERIA as $category_id => $value ) {
+			$category_weight = $value['weight'];
+			$category_sum = 0;
+			$category_item_count = 0;
+
 			foreach ( $value['criteria'] as $criteria_id => $_ ) {
-				$category_sum[ $category_id ]['sum'] += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
-				$category_sum[ $category_id ]['item_count']++;
+				$category_sum += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
+				$category_item_count++;
+
+				$single_score_category_sum[ $category_id ]['sum'] += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
+				$single_score_category_sum[ $category_id ]['item_count']++;
 			}
+
+			$score_weighted_sum += ( $category_sum / $category_item_count ) * $category_weight;
 		}
+		$total_submission_score += $score_weighted_sum;
 	}
-
 	$weighted_score = [];
+	$weighted_score['submission_score'] = $total_submission_score / $score_count;
+	$weighted_score['by_category'] = [];
+	$weighted_score['overall'] = 0;
 	foreach ( SCORING_CRITERIA as $category_id => $value ) {
-		$weighted_score['overall'] += ( $category_sum[ $category_id ]['sum'] / $category_sum[ $category_id ]['item_count'] ) * $value['weight'];
-		$weighted_score['by_category'][ $category_id ] = $category_sum[ $category_id ]['sum'] / $category_sum[ $category_id ]['item_count'];
+		// Score by category is calculated only for an specific user, when the user is editing a previous given score.
+		$weighted_score['overall'] += ( $single_score_category_sum[ $category_id ]['sum'] / $single_score_category_sum[ $category_id ]['item_count'] ) * $value['weight'];
+		$weighted_score['by_category'][ $category_id ] = $single_score_category_sum[ $category_id ]['sum'] / $single_score_category_sum[ $category_id ]['item_count'];
 	}
 
-	if ( array_sum( $weighted_score['by_category'] ) === 0 || $weighted_score['overall'] === 0 ) {
+	if ( array_sum( $weighted_score['by_category'] ) === 0 || $weighted_score['overall'] === 0 || $weighted_score['submission_score'] === 0 ) {
 		return null;
 	}
 
@@ -493,8 +534,11 @@ function register_meta_orderby( $query ) : void {
 
 	foreach ( $custom_post_statuses as $custom_post_status ) {
 		if ( $orderby === "col_{$custom_post_status->name}_score" ) {
-			$query->set( 'meta_key','score_' . $custom_post_status->name );
-			$query->set( 'orderby','meta_value_num' );
+			$query->set( 'meta_key', 'score_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
+		} elseif ( $orderby === "col_{$custom_post_status->name}_completion" ) {
+			$query->set( 'meta_key', 'score_completion_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
 		}
 	}
 }
