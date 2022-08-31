@@ -47,6 +47,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function filter_posts_clauses( $sql_pieces ) {
 		global $wpdb;
 		$user_id = get_current_user_id();
+		$current_time = microtime( true );
 
 		$sql_pieces['join'] .= $wpdb->prepare( "
 			LEFT OUTER JOIN {$wpdb->comments}
@@ -55,6 +56,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 				AND {$wpdb->comments}.comment_agent = 'screening_result'
 				AND {$wpdb->comments}.user_id = %d
 			)
+			/* {$current_time} */
 			",
 			$user_id
 		);
