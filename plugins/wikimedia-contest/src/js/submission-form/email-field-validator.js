@@ -4,7 +4,7 @@
  * @package
  */
 
-const { ajaxurl, field_id } = window.submitterEmailField;
+const { submitterEmailField } = window;
 
 /**
  * Cached DOM sselector to hold email input field.
@@ -26,7 +26,7 @@ const checkEmailAddress = ( { target } ) => {
 	}
 
 	const checkRequest = fetch(
-		ajaxurl,
+		submitterEmailField.ajaxurl,
 		{
 			method: 'POST',
 			headers: {
@@ -47,7 +47,7 @@ const checkEmailAddress = ( { target } ) => {
 				wrap = target.closest( '.gform_wrapper' );
 
 			if ( ! field.querySelector( '.gfield_validation_message' ) ) {
-				target.insertAdjacentHTML( '<div class="gfield_description validation_message gfield_validation_message"></div>' );
+				target.insertAdjacentHTML( 'afterend', '<div class="gfield_description validation_message gfield_validation_message"></div>' );
 			}
 			const validationMessage =  field.querySelector( '.gfield_validation_message' );
 
@@ -68,7 +68,11 @@ const checkEmailAddress = ( { target } ) => {
  * Attach event listeners.
  */
 const init = () => {
-	emailField = document.getElementById( field_id );
+	if ( ! submitterEmailField ) {
+		return;
+	}
+
+	emailField = document.getElementById( submitterEmailField.field_id );
 	emailField.addEventListener( 'blur', checkEmailAddress );
 };
 
