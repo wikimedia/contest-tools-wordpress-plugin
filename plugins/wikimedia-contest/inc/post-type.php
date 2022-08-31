@@ -26,7 +26,6 @@ function bootstrap() {
 	add_action( 'admin_footer-edit.php', __NAMESPACE__ . '\\custom_inline_edit');
 	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_unused_boxes');
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\customize_row_actions', 10, 1 );
-	add_action( 'pre_get_posts', '\Wikimedia_Contest\Scoring\register_meta_orderby' );
 }
 
 /**
