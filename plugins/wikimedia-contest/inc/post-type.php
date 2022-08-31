@@ -244,7 +244,15 @@ function custom_submission_column( $column, $post_id ) : void {
 
 		case 'col_phase_score':
 			$phase_score = get_post_meta( $post_id, 'score_' . get_site_option( 'contest_status' ), true );
-			echo ( ! empty( $phase_score ) ) ? "{$phase_score} / 10" : '-';
+			$scoring_phase_completion = get_post_meta( $post_id, 'score_completion_' . get_site_option( 'contest_status' ), true );
+			if ( is_numeric( $phase_score ) ) {
+				if ( (int) $scoring_phase_completion !== 1 ) {
+					echo '*';
+				}
+				echo round( $phase_score, 2) . " / 10";
+			} else {
+				echo '-';
+			}
 			break;
 
 		case 'col_scoring_completion':

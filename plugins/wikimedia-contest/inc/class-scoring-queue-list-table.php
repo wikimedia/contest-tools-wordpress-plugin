@@ -211,7 +211,15 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 */
 	function column_col_phase_score( $item ) {
 		$score = get_post_meta( $item->ID, "score_{$this->scoring_phase}", true );
-		echo is_numeric( $score ) ? "{$score} / 10" : '-';
+		$scoring_phase_completion = get_post_meta( $item->ID, "score_completion_{$this->scoring_phase}", true );
+		if ( is_numeric( $score ) ) {
+			if ( (int) $scoring_phase_completion !== 1 ) {
+				echo '*';
+			}
+			echo round( $score, 2) . " / 10";
+		} else {
+			echo '-';
+		}
 	}
 
 	/**
