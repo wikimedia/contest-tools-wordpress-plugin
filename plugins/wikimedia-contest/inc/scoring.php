@@ -94,11 +94,6 @@ function bootstrap() : void {
 	add_action( 'init', __NAMESPACE__ . '\\register_scorer_roles' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
-	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
-	add_action( 'handle_bulk_actions-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
-	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\register_meta_orderby' );
 }
 
@@ -198,34 +193,6 @@ function render_scoring_queue() : void {
 
 	require_once __DIR__ . '/class-scoring-queue-list-table.php';
 
-	// If any success messages exist, render them here.
-	if ( ! empty( $_REQUEST['success'] ) ) {
-		$count = intval( $_REQUEST['count'] );
-
-		switch( $_REQUEST['success'] ):
-		case 'assign':
-
-			$user = get_user_by( 'id', $_REQUEST['user'] );
-			$message = sprintf(
-				/* translators: 1. number of submissions affected, 2. scoring panelist's name. */
-				__( 'Assigned %d submissions to %s', 'wikimedia-contest-admin' ),
-				$count,
-				$user->display_name ?? 'a scorer'
-			);
-			break;
-		case 'remove-assignees':
-			$message = sprintf(
-				/* translators: number of submissions affected. */
-				__( 'Removed all assignees from %d submissions', 'wikimedia-contest-admin' ),
-				$count
-			);
-		endswitch;
-
-			if ( ! empty( $message ) ) {
-				echo '<div id="message" class="updated notice is-dismissible"><p>' .  $message . '</p></div>';
-			}
-	}
-
 	$list_table = new Scoring_Queue_List_Table();
 	$list_table->prepare_items();
 
@@ -238,7 +205,6 @@ function render_scoring_queue() : void {
 	// Hook into the list-tables API for running actions.
 	$current_action = $list_table->current_action();
 	$current_screen = $list_table->screen;
-
 	if ( ! empty( $current_action )  ) {
 
 		// Run through the handle_bulk_actions filter; this can be used to add
@@ -252,7 +218,6 @@ function render_scoring_queue() : void {
 
 		wp_safe_redirect( $return_url );
 	}
-
 
 	echo '<div id="scoring-queue" class="wrap">';
 	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Scoring Queue - Contest Phase:', 'wikimedia-contest-admin' ) . ' <b>' . $custom_post_statuses[ $current_contest_phase_option ]->label  . '</b></h1>';
@@ -500,108 +465,6 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
 	foreach ( $comments as $comment ) {
 		wp_set_comment_status( $comment->comment_ID, 'hold' );
 	}
-}
-
-/**
- * Update bulk actions available for scorers in the submissions list table.
- *
- * @param [] $bulk_actions Items available in the bulk actions dropdown.
- * @return [] Updated bulk actions array.
- */
-function add_bulk_assignment_controls( $bulk_actions ) {
-
-	if ( current_user_can( 'assign_scorers' ) && in_array( get_post_status(), SCORING_STATUSES, true ) ) {
-		$scoring_panel =
-		$assignment_dropdown = [];
-
-		foreach ( get_scoring_panel_members() as $user ) {
-			$assignment_dropdown[ "assign-{$user->ID}" ] = sprintf(
-				__( 'Assign %s', 'wikimedia-contest-admin' ),
-				$user->display_name
-			);
-		}
-
-		$bulk_actions[ __( 'Assign to', 'wikimedia-contest-admin' ) ] = $assignment_dropdown;
-
-		$bulk_actions['remove-assignees'] = __( 'Remove assignees', 'wikimedia-contest-admin' );
-	}
-
-	if ( ! current_user_can( 'edit_submissions' ) ) {
-		unset( $bulk_actions['edit'] );
-		unset( $bulk_actions['trash'] );
-	}
-
-	return $bulk_actions;
-}
-
-/**
- * Allow panelist leads to see the bulk action checkboxes.
- *
- * The bulk actions functionality is normally only exposed to users with the
- * edit-posts cap. This ensures that even users who can't edit posts, but can
- * assign scorers, can use these controls.
- *
- * @param bool $show Whether to show the bulk actions checkbox.
- * @param WP_Post $post Post being rendered.
- * @return bool Whether to show the bulk checkbox.
- */
-function show_bulk_actions_cb_for_panelist_leads( $show, $post ) {
-	if ( in_array( $post->post_status, SCORING_STATUSES, true ) && current_user_can( 'assign_scorers' ) ) {
-		$show = true;
-	}
-
-	return $show;
-}
-
-/**
- * Handle user-initiated bustom bulk actions.
- *
- * @param string $return_url URL of the page to return to after completion.
- * @param string $action Name of action being performed.
- * @param int[] $post_ids Array of IDs of posts checked.
- */
-function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
-
-	if ( strpos( $action, 'assign-' ) === 0 ) {
-		$user_id = intval( substr( $action, 7 ) );
-
-		if ( in_array( $user_id, wp_list_pluck( get_scoring_panel_members(), 'ID' ), true ) ) {
-			foreach ( $post_ids as $post_id ) {
-				$assignees = get_post_meta( $post_id, 'assignees' ) ?: [];
-				$assignees[] = $user_id;
-
-				delete_post_meta( $post_id, 'assignees' );
-				foreach ( array_unique( array_filter( $assignees ) ) as $assignee ) {
-					add_post_meta( $post_id, 'assignees', $assignee );
-				}
-			}
-		}
-
-		$return_url = add_query_arg(
-			[
-				'success' => 'assign',
-				'user' => $user_id,
-				'count' => count( $post_ids )
-			],
-			$return_url
-		);
-	}
-
-	if ( $action === 'remove-assignees' ) {
-		foreach ( $post_ids as $post_id ) {
-			delete_post_meta( $post_id, 'assignees' );
-		}
-
-		$return_url = add_query_arg(
-			[
-				'success' => 'remove-assignees',
-				'count' => count( $post_ids )
-			],
-			$return_url
-		);
-	}
-
-	wp_safe_redirect( $return_url );
 }
 
 /**
