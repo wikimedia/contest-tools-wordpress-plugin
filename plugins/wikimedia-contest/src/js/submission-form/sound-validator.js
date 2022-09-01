@@ -28,7 +28,7 @@ const audioContext = new AudioContext();
  *
  * @member {string[]}
  */
-const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/x-wav' ];
+const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/ogg', 'audio/x-wav', 'audio/wav' ];
 
 /**
  * Maximum upload file size: 100MB.
