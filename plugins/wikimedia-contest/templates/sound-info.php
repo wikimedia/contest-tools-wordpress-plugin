@@ -27,6 +27,13 @@ $explanation_creation = get_post_meta( $post_id, 'explanation_creation', true ) 
 $explanation_inspiration = get_post_meta( $post_id, 'explanation_inspiration', true ) ?: '';
 
 /**
+ * Translations of creation/inspiration fields for non-English language submissions.
+ *
+ * @var string[]
+ */
+$translated_fields = get_post_meta( $post_id, 'translated_fields', true ) ?: [ 'creation' => '', 'inspiration' => '' ];
+
+/**
  * Yes/no answers from the creation process.
  *
  * @var [] Key => value for all fields.
@@ -45,7 +52,14 @@ $audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
  *
  * @var string
  */
-$audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
+$audio_file_meta = get_post_meta( $post_id, 'audio_file_meta', true ) ?: [];
+
+/**
+ * Whether the translation fields should be editable.
+ *
+ * @var bool
+ */
+$is_editable = get_current_screen()->base !== 'post';
 
 /**
  * Create more user-friendly labels for audio file metadata.
@@ -127,16 +141,32 @@ $flag_labels = array(
 	</dl>
 </div>
 
-<div class="card">
+<div class="card with-translation">
 	<h3><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
+
+	<textarea
+		name="translated_fields[creation]"
+		class="widefat translation"
+		cols="30" rows="5"
+		placeholder="Translate here if non-English"
+		<?php echo ! $is_editable ? 'readonly' : ''; ?>
+	><?php echo esc_textarea( $translated_fields['creation'] ); ?></textarea>
 </div>
 
-<div class="card">
+<div class="card with-translation">
 	<h3><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>
+
+	<textarea
+		name="translated_fields[inspiration]"
+		class="widefat translation"
+		cols="30" rows="5"
+		placeholder="Translate here if non-English"
+		<?php echo ! $is_editable ? 'readonly' : ''; ?>
+	><?php echo esc_textarea( $translated_fields['inspiration'] ); ?></textarea>
 </div>

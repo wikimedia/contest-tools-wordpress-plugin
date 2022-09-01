@@ -73,16 +73,16 @@ const SCORING_CRITERIA = [
 		'weight'   => 0.5,
 		'label'    => 'Conceptual Match (%d%% weighting)',
 		'criteria' => [
-			'represent_spirit' => 'To what extent does the sound represent the spirit of the Wikimedia movement?',
-			'closely_communicate' => 'How closely does the sound communicate one of the creative prompts?',
+			'represent_spirit' => 'To what extent does the sound logo represent the spirit of the Wikimedia movement?',
+			'closely_communicate' => 'How closely does the sound logo communicate one of the creative prompts?',
 			'feel_human' => 'To what extent does it feel human, inspired, smart and warm?',
 		]
 	],
 	'originality' => [
 		'weight'   => 0.25,
-		'label'    => 'Originality (%s%% weighting)',
+		'label'    => 'Originality / Uniqueness (%s%% weighting)',
 		'criteria' => [
-			'original_unique' => 'To what extent does the sound feel original and unique?',
+			'original_unique' => 'To what extent does the sound logo feel original and unique?',
 			'stand_out' => 'How much does it stand out compared to other sound logos?',
 		]
 	],
@@ -306,6 +306,7 @@ function handle_scoring_results() : void {
 		'additional_comment' => $additional_comment,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_scoring_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
 	exit;
