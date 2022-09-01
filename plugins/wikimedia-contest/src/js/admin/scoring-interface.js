@@ -12,17 +12,30 @@
 const scoringInterface = document.getElementById( 'scoring-interface' );
 
 /**
+ *
+ * @param {string} givenScore - The score to check.
+ * @returns {boolean} - Whether the score is valid.
+ */
+const checkValidScore = givenScore => {
+	if ( ! givenScore.match( /^\d+$/ ) || givenScore < 0 || givenScore > 10 ) {
+		return false;
+	} else {
+		return true;
+	}
+};
+
+/**
  * Handle changes to any scoring fields
  *
  * Includes error visual feedback if user includes an invalid score.
  *
  * @param {Event} "Input" event, captured within scoring form.
  */
-const checkValidScore = ( { currentTarget } ) => {
+const checkValidField = ( { currentTarget } ) => {
 	const scoringSubmitButton = document.getElementById( 'scoring-submit' );
 	const scoringInstructions = document.getElementById( 'scoring-instructions' );
 
-	if ( ! currentTarget.value.match( /^\d+$/ ) || currentTarget.value < 0 || currentTarget.value > 10 ) {
+	if ( ! checkValidScore( currentTarget.value ) ) {
 		currentTarget.classList.add( 'scoring-error__field' );
 		scoringInstructions.classList.add( 'scoring-error__message' );
 		scoringSubmitButton.disabled = true;
@@ -49,6 +62,12 @@ const checkAllFields = () => {
 	scoringFields.forEach( field => {
 		if ( field.classList.contains( 'scoring-error__field' ) ) {
 			allFieldsValid = false;
+			return;
+		}
+
+		if ( ! checkValidScore( field.value ) ) {
+			allFieldsValid = false;
+			return;
 		}
 	} );
 
@@ -70,8 +89,8 @@ const init = () => {
 	}
 
 	scoringInterface.querySelectorAll( '.scoring-field' ).forEach( input => {
-		input.addEventListener( 'input', checkValidScore );
-		input.addEventListener( 'focusout', checkValidScore );
+		input.addEventListener( 'input', checkValidField );
+		input.addEventListener( 'focusout', checkValidField );
 	} );
 };
 
