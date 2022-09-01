@@ -61,7 +61,6 @@ const closeListbox = customSelect => {
 	listbox.classList.remove( 'is-opened' );
 	listbox.removeEventListener( 'keydown', handleKeyboardNavigation );
 	listbox.setAttribute( 'tabindex', '-1' );
-	document.activeElement.scrollIntoView();
 };
 
 /**
@@ -87,14 +86,13 @@ const toggleListboxVisibility = ( { target } ) => {
  * Handle keyboard navigation inside the listbox.
  *
  * @param {Event} event Keypress event, captured by the listbox ul.
- * @returns mixed
+ * @returns {HTMLElement?} Focused HTML Element, or null.
  */
 const handleKeyboardNavigation = event => {
-	const { currentTarget, target, key } = event;
 	const currentItem = document.activeElement.closest( '.gfield_option' );
+	const { key } = event;
 
-	console.log( { currentTarget, currentItem, target, key } ); /* eslint-disable-line */
-
+	/* eslint-disable no-case-declarations */
 	switch ( key ) {
 		case 'Down':
 		case 'ArrowDown':
@@ -106,9 +104,12 @@ const handleKeyboardNavigation = event => {
 			return currentItem.previousElementSibling.querySelector( 'button' ).focus();
 		case 'Esc':
 		case 'Escape':
-			return closeListbox( currentTarget );
+			closeListbox( currentItem );
+			const toggleButton = getField( currentItem, '.gfield_toggle' );
+			toggleButton.scrollIntoView( { block: 'center' } );
+			toggleButton.focus();
+			return toggleButton;
 		default:
-			/* eslint-disable no-case-declarations */
 			let searchPointer = currentItem;
 			// for any alphabetic input, look for the next element node
 			// matching that character and select it, if found.
@@ -116,7 +117,7 @@ const handleKeyboardNavigation = event => {
 			while ( searchPointer = searchPointer.nextElementSibling ) {
 				if ( searchPointer.innerText.toUpperCase().startsWith( key ) ) {
 					searchPointer.querySelector( 'button' ).focus();
-					searchPointer.scrollIntoView( false );
+					searchPointer.scrollIntoView( { block: 'center' } );
 				}
 			}
 	}
