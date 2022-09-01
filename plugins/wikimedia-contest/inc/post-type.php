@@ -43,16 +43,18 @@ function register_submission_custom_post_type() {
 		'edit_item'           => __( 'Submission Details', 'wikimedia-contest' ),
 	];
 
+	$is_admin = \current_user_can( 'manage_options' ) ? true : false;
+
 	$args = [
 		'label'               => __( 'Submissions', 'wikimedia-contest' ),
 		'description'         => __( 'Audio submission from a contest participant', 'wikimedia-contest' ),
 		'labels'              => $labels,
 		'hierarchical'        => false,
 		'public'              => true,
-		'show_ui'             => true,
-		'show_in_menu'        => true,
+		'show_ui'             => $is_admin,
+		'show_in_menu'        => $is_admin,
 		'show_in_nav_menus'   => false,
-		'show_in_admin_bar'   => true,
+		'show_in_admin_bar'   => $is_admin,
 		'menu_position'       => 3,
 		'supports'            => [
 			'title' => false,
@@ -60,11 +62,11 @@ function register_submission_custom_post_type() {
 			'author' => false,
 			'custom-fields' => true,
 		],
-		'can_export'          => true,
+		'can_export'          => $is_admin,
 		'has_archive'         => false,
 		'exclude_from_search' => false,
-		'publicly_queryable'  => true,
-		'show_in_rest' => true,
+		'publicly_queryable'  => $is_admin,
+		'show_in_rest' => $is_admin,
 	];
 
 	register_post_type( SLUG, $args );
@@ -364,12 +366,7 @@ function customize_row_actions( $actions ) : array {
 	if ( get_post_type() === 'submission' ) {
 		unset( $actions['view'] );
 		unset( $actions['trash'] );
-
-		if ( ! current_user_can( 'administrator' ) ) {
-			unset( $actions['edit'] );
-		} else {
-			$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
-		}
+		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
 	}
 
 	return $actions;

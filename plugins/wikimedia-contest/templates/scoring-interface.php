@@ -65,7 +65,7 @@ $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user
 									type='number'
 									min='0'
 									max='10'
-									value='<?php echo esc_attr( $score_given['criteria']["scoring_criteria_{$category_id}_{$criteria_id}"] ); ?>'
+									value='<?php echo esc_attr( $score_given['criteria']["scoring_criteria_{$category_id}_{$criteria_id}"] ?? '' ); ?>'
 								>
 								&nbsp;/10
 							</td>
@@ -98,7 +98,7 @@ $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user
 
 				<h3><?php esc_html_e( 'Any additional thoughts about this sound logo', 'wikimedia-contest-admin' ); ?></h3>
 
-				<textarea class="widefat" name="additional_scoring_comment" cols="30" rows="10"><?php esc_html_e( $score_given['additional_comment'] ); ?></textarea>
+				<textarea class="widefat" name="additional_scoring_comment" cols="30" rows="10"><?php esc_html_e( $score_given['additional_comment'] ?? '' ); ?></textarea>
 
 				<br/><br/><hr/><br/>
 
