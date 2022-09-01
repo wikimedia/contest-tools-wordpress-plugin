@@ -24,13 +24,6 @@ import { __ } from '@wordpress/i18n';
 const audioContext = new AudioContext();
 
 /**
- * Allowed file types.
- *
- * @member {string[]}
- */
-const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/ogg', 'audio/x-wav', 'audio/wav' ];
-
-/**
  * Maximum upload file size: 100MB.
  */
 const MAX_FILE_SIZE = 100000000;
@@ -100,7 +93,7 @@ const validateSoundFile = async ( { target } ) => {
 	const { name, size, type } = file;
 
 	// Validate file type.
-	if ( ! ALLOWED_TYPES.includes( type ) ) {
+	if ( ! window.audioFileAllowedMimeTypes.includes( type ) ) {
 		validations.push( {
 			error: true,
 			message: __( 'File must be one of the allowed types: MP3, OGG, or WAV.', 'wikimedia-contest' ),
