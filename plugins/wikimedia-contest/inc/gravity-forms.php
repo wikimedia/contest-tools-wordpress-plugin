@@ -252,6 +252,7 @@ function render_accessible_select_field( $field_input, $field, $value, $_, $form
 		return $field_input;
 	}
 
+	$display_value = current( wp_list_filter( $field->choices, [ 'value' => $value ] ) );
 	$id = sanitize_key( "input_{$form_id}_{$field->id}" );
 	$field_name = sanitize_key( "input_{$field->id}" );
 	ob_start();
@@ -259,7 +260,7 @@ function render_accessible_select_field( $field_input, $field, $value, $_, $form
 	<div class="ginput_container">
 		<div class="gfield_custom_select">
 			<button type="button" class="gfield_toggle" aria-haspopup="listbox" aria-labelledby="<?php echo esc_attr( $id ); ?>">
-				<div class="gfield_current_value"><?php echo esc_html( $value ) ; ?></div>
+				<div class="gfield_current_value"><?php echo esc_html( $display_value['text'] ?? '' ) ; ?></div>
 				<?php wmf_show_icon( 'down' ); ?>
 			</button>
 			<ul class="gfield_listbox" role="listbox" id="<?php echo esc_attr( "{$id}_list" ); ?>" tabindex="-1">
@@ -268,6 +269,7 @@ function render_accessible_select_field( $field_input, $field, $value, $_, $form
 					echo '<li class="gfield_option' .
 						( $option['isSelected'] ? ' is-selected' : '' ) . '" ' .
 						'data-value="' . esc_attr( $option['value'] ) . '" ' .
+						'data-text="' . esc_attr( $option['text'] ) . '" ' .
 						'role="option">' .
 						'<button type="button">' .  esc_html( $option['text'] ) . '</button>' .
 						'</li>';

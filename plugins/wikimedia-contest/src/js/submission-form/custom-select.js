@@ -59,6 +59,7 @@ const handleLeaveInputField = ( { target } ) => {
 const closeListbox = customSelect => {
 	const listbox = getField( customSelect, '.gfield_listbox' );
 	listbox.classList.remove( 'is-opened' );
+	listbox.removeEventListener( 'keydown', handleKeyboardNavigation );
 	listbox.setAttribute( 'tabindex', '-1' );
 };
 
@@ -71,12 +72,54 @@ const toggleListboxVisibility = ( { target } ) => {
 	const listbox = getField( target, '.gfield_listbox' );
 	listbox.setAttribute( 'tabindex', 1 );
 	listbox.classList.toggle( 'is-opened' );
+	listbox.addEventListener( 'keydown', handleKeyboardNavigation );
 
 	// If an item is selected, focus that one; otherwise focus the first option.
 	if ( listbox.querySelector( '.gfield_option.is-selected' ) ) {
 		listbox.querySelector( '.gfield_option.is-selected button' ).focus();
 	} else {
 		listbox.querySelector( '.gfield_option button' ).focus();
+	}
+};
+
+/**
+ * Handle keyboard navigation inside the listbox.
+ *
+ * @param {Event} event Keypress event, captured by the listbox ul.
+ * @returns {HTMLElement?} Focused HTML Element, or null.
+ */
+const handleKeyboardNavigation = event => {
+	const currentItem = document.activeElement.closest( '.gfield_option' );
+	const { key } = event;
+
+	/* eslint-disable no-case-declarations */
+	switch ( key ) {
+		case 'Down':
+		case 'ArrowDown':
+			event.preventDefault();
+			return currentItem.nextElementSibling.querySelector( 'button' ).focus();
+		case 'Up':
+		case 'ArrowUp':
+			event.preventDefault();
+			return currentItem.previousElementSibling.querySelector( 'button' ).focus();
+		case 'Esc':
+		case 'Escape':
+			closeListbox( currentItem );
+			const toggleButton = getField( currentItem, '.gfield_toggle' );
+			toggleButton.scrollIntoView( { block: 'center' } );
+			toggleButton.focus();
+			return toggleButton;
+		default:
+			let searchPointer = currentItem;
+			// for any alphabetic input, look for the next element node
+			// matching that character and select it, if found.
+			/* eslint-disable no-cond-assign */
+			while ( searchPointer = searchPointer.nextElementSibling ) {
+				if ( searchPointer.innerText.toUpperCase().startsWith( key ) ) {
+					searchPointer.querySelector( 'button' ).focus();
+					searchPointer.scrollIntoView( { block: 'center' } );
+				}
+			}
 	}
 };
 
@@ -89,13 +132,13 @@ const selectOption = ( { target } ) => {
 	const hiddenInput = getField( target, '.gfield_hidden_input' );
 	const option = target.closest( '.gfield_option' );
 	const options = getFields( target, '.gfield_option' );
-	const { value } = option.dataset;
+	const { text, value } = option.dataset;
 
 	options.forEach( opt => opt.classList.remove( 'is-selected' ) );
 	option.classList.add( 'is-selected' );
 
 	hiddenInput.value = value;
-	getField( target, '.gfield_current_value' ).innerHTML = value;
+	getField( target, '.gfield_current_value' ).innerHTML = text;
 
 	/* eslint-disable no-unused-vars */
 	const [ id, formId, fieldId ] = hiddenInput.id.match( /input_([0-9]*)_([0-9]*)/ );
