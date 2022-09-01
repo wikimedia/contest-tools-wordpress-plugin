@@ -288,7 +288,7 @@ function handle_scoring_results() : void {
 
 	$post_id = sanitize_text_field( $_REQUEST['post'] ?? null );
 
-	if ( ! current_user_can( 'score-submissions' ) ) {
+	if ( ! current_user_can( 'score_submissions' ) ) {
 		return;
 	}
 
