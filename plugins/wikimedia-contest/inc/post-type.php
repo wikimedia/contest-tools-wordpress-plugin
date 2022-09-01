@@ -267,6 +267,22 @@ function custom_submission_column( $column, $post_id ) : void {
 }
 
 /**
+ * Update the "translated content" meta field in response to user input.
+ *
+ * @param int $post_id Post ID being updated.
+ * @param [] $translation_submission Submitted translations.
+ * @return bool Whether updates were made.
+ */
+function update_translations( $post_id, $translation_submission ) {
+	$translation_submission = array_intersect_key(
+		array_map( 'sanitize_textarea_field', $translation_submission ),
+		array_flip( [ 'creation', 'inspiration' ] )
+	);
+
+	return update_post_meta( $post_id, 'translated_fields', $translation_submission );
+}
+
+/**
  * Render the editor interface for the submission post type.
  *
  * @param WP_Post $post Current post object.
