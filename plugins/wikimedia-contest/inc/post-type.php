@@ -18,7 +18,6 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_type', 0 );
 	add_action( 'init', __NAMESPACE__ . '\\register_submission_custom_post_statuses', 0 );
 	add_action( 'add_meta_boxes', __NAMESPACE__ . '\\add_submission_box' );
-	add_action( 'save_post_submission', __NAMESPACE__ . '\\submission_save_meta', 10, 2 );
 	add_filter( 'display_post_states', __NAMESPACE__ . '\\display_post_states_in_list_table', 10, 2 );
 	add_filter( 'manage_edit-submission_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
