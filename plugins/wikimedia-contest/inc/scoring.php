@@ -383,6 +383,12 @@ function get_submission_score_given_by_user( $submission_id, $user_id ) : ?array
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	$comment = end( $comments );
@@ -417,8 +423,10 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'meta_query' => [
-			'key' => 'scoring_phase',
-			'value' => get_site_option( 'contest_status' ),
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
 		],
 	];
 
@@ -501,6 +509,12 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	foreach ( $comments as $comment ) {
