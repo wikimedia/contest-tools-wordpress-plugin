@@ -279,8 +279,6 @@ function update_translations( $post_id, $translation_submission ) {
 		array_flip( [ 'creation', 'inspiration' ] )
 	);
 
-	error_log( print_r( $translation_submission, true ) );
-
 	return update_post_meta( $post_id, 'translated_fields', $translation_submission );
 }
 
