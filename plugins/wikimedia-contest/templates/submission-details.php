@@ -7,6 +7,10 @@
 
 use Wikimedia_Contest\Screening;
 
+if ( ! current_user_can( 'administrator' ) ) {
+	return;
+}
+
 $submission_id = get_the_ID();
 $submission_post = get_post($submission_id);
 $submission_meta = get_post_meta( $submission_id );
