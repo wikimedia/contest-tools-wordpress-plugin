@@ -80,7 +80,7 @@ const SCORING_CRITERIA = [
 	],
 	'originality' => [
 		'weight'   => 0.25,
-		'label'    => 'Originality (%s%% weighting)',
+		'label'    => 'Originality / Uniqueness (%s%% weighting)',
 		'criteria' => [
 			'original_unique' => 'To what extent does the sound logo feel original and unique?',
 			'stand_out' => 'How much does it stand out compared to other sound logos?',
