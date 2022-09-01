@@ -364,9 +364,9 @@ function custom_inline_edit() : void {
  */
 function customize_row_actions( $actions ) : array {
 	if ( get_post_type() === 'submission' ) {
+		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
 		unset( $actions['view'] );
 		unset( $actions['trash'] );
-		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
 	}
 
 	return $actions;
