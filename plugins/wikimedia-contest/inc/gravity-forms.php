@@ -17,7 +17,11 @@ use Wikimedia_Contest\Network_Library;
  *
  * @var string[]
  */
-const ALLOWED_TYPES = [ 'audio/mpeg', 'video/ogg', 'audio/x-wav' ];
+const ALLOWED_TYPES = [
+	'audio/mpeg', 'video/mpeg', 'audio/mp3', 'audio/mp4', // MP3 mimetypes
+	'video/ogg', 'audio/ogg', 'application/ogg', // OGG mimetypes
+	'audio/x-wav', 'audio/wav', 'audio/wave', 'audio/x-pn-wav', // WAV mimetypes
+];
 
 /**
  * Maximum upload file size: 100MB.
@@ -180,7 +184,12 @@ function identify_audio_meta_field( $form ) {
 
 	if ( $field ) {
 		$field_id = "input_{$field->formId}_{$field->id}";
-		echo "\r\n" . '<script type="text/javascript">var audioFileMetaField = "' . esc_js( $field_id ) . '";</script>';
+		?>
+		<script type="text/javascript">
+		var audioFileMetaField = "<?php echo esc_js( $field_id ); ?>";
+		var audioFileAllowedMimeTypes = <?php echo json_encode( ALLOWED_TYPES ); ?>;
+		</script>
+		<?php
 	}
 
 	return $form;
