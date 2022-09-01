@@ -1,0 +1,10 @@
+.card.with-translation {
+	display: flex;
+	flex-flow: column;
+	justify-content: flex-start;
+
+	.translation {
+		max-width: 100%;
+		margin-top: auto;
+	}
+}

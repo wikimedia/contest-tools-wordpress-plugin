@@ -68,7 +68,11 @@ function register_screener_role() {
 		);
 
 		foreach ( [ 'administrator', 'scoring_panel_lead' ] as $role ) {
-			get_role( $role )->add_cap( 'view_screening_results' );
+			$role_object = get_role( $role );
+
+			if ( $role_object ) {
+				$role_object->add_cap( 'view_screening_results' );
+			}
 		}
 
 		$roles['screener'] = 2;
@@ -176,6 +180,7 @@ function handle_screening_results() {
 		'message' => $message_other,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 }
