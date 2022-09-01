@@ -87,12 +87,12 @@ function ajax_check_email_address() {
 
 	// Validate that the email address looks like a valid email.
 	if ( empty( $validated ) ) {
-		wp_send_json_error( __( 'Invalid email address.', 'wikimedia-contest' ), 403 );
+		wp_send_json_error( __( 'Invalid email address.', 'wikimedia-contest' ), 200 );
 	}
 
 	// Check if the email address has already been used.
 	if ( has_email_submitted_three_entries( $email_address ) ) {
-		wp_send_json_error( __( 'You have met the maximum number of submissions for this contest. Each contestant can submit up to 3 sound logos.', 'wikimedia-contest' ), 403 );
+		wp_send_json_error( __( 'You have met the maximum number of submissions for this contest. Each contestant can submit up to 3 sound logos.', 'wikimedia-contest' ), 200 );
 	}
 
 	wp_send_json_success();
