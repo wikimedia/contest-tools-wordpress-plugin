@@ -59,7 +59,9 @@ const handleLeaveInputField = ( { target } ) => {
 const closeListbox = customSelect => {
 	const listbox = getField( customSelect, '.gfield_listbox' );
 	listbox.classList.remove( 'is-opened' );
+	listbox.removeEventListener( 'keydown', handleKeyboardNavigation );
 	listbox.setAttribute( 'tabindex', '-1' );
+	document.activeElement.scrollIntoView();
 };
 
 /**
@@ -71,12 +73,52 @@ const toggleListboxVisibility = ( { target } ) => {
 	const listbox = getField( target, '.gfield_listbox' );
 	listbox.setAttribute( 'tabindex', 1 );
 	listbox.classList.toggle( 'is-opened' );
+	listbox.addEventListener( 'keydown', handleKeyboardNavigation );
 
 	// If an item is selected, focus that one; otherwise focus the first option.
 	if ( listbox.querySelector( '.gfield_option.is-selected' ) ) {
 		listbox.querySelector( '.gfield_option.is-selected button' ).focus();
 	} else {
 		listbox.querySelector( '.gfield_option button' ).focus();
+	}
+};
+
+/**
+ * Handle keyboard navigation inside the listbox.
+ *
+ * @param {Event} event Keypress event, captured by the listbox ul.
+ * @returns mixed
+ */
+const handleKeyboardNavigation = event => {
+	const { currentTarget, target, key } = event;
+	const currentItem = document.activeElement.closest( '.gfield_option' );
+
+	console.log( { currentTarget, currentItem, target, key } ); /* eslint-disable-line */
+
+	switch ( key ) {
+		case 'Down':
+		case 'ArrowDown':
+			event.preventDefault();
+			return currentItem.nextElementSibling.querySelector( 'button' ).focus();
+		case 'Up':
+		case 'ArrowUp':
+			event.preventDefault();
+			return currentItem.previousElementSibling.querySelector( 'button' ).focus();
+		case 'Esc':
+		case 'Escape':
+			return closeListbox( currentTarget );
+		default:
+			/* eslint-disable no-case-declarations */
+			let searchPointer = currentItem;
+			// for any alphabetic input, look for the next element node
+			// matching that character and select it, if found.
+			/* eslint-disable no-cond-assign */
+			while ( searchPointer = searchPointer.nextElementSibling ) {
+				if ( searchPointer.innerText.toUpperCase().startsWith( key ) ) {
+					searchPointer.querySelector( 'button' ).focus();
+					searchPointer.scrollIntoView( false );
+				}
+			}
 	}
 };
 
