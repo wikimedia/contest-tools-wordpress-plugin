@@ -454,45 +454,69 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		update_post_meta( $submission_id, "score_completion_{$current_contest_phase}", count( $comments ) / SCORERS_NEEDED_EACH_PHASE[ $current_contest_phase ] );
 	}
 
-	$score_count = 0;
-	$single_score_category_sum = [];
 	$total_submission_score = 0;
+
 	foreach ( $comments as $comment ) {
 		$comment_score_content = json_decode( get_comment_meta( $comment->comment_ID, 'given_score', true ), true );
-		$score_weighted_sum = 0;
-		$score_count++;
+		$total_submission_score += calculate_weighted_score( $comment_score_content );
+	}
+
+	$weighted_score = [
+		'submission_score' => $total_submission_score / count( $comments ),
+		'overall' => 0,
+		'by_category' => [],
+	];
+
+	if ( $user_id ) {
+		$weighted_score['overall'] = $weighted_score['submission_score'];
+
 		foreach ( SCORING_CRITERIA as $category_id => $value ) {
-			$category_weight = $value['weight'];
-			$category_sum = 0;
-			$category_item_count = 0;
-
-			foreach ( $value['criteria'] as $criteria_id => $_ ) {
-				$category_sum += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
-				$category_item_count++;
-
-				$single_score_category_sum[ $category_id ]['sum'] += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
-				$single_score_category_sum[ $category_id ]['item_count']++;
-			}
-
-			$score_weighted_sum += ( $category_sum / $category_item_count ) * $category_weight;
+			$weighted_score['by_category'][ $category_id ] = calculate_score_for_category( $comment_score_content, $category_id );
 		}
-		$total_submission_score += $score_weighted_sum;
-	}
-	$weighted_score = [];
-	$weighted_score['submission_score'] = $total_submission_score / $score_count;
-	$weighted_score['by_category'] = [];
-	$weighted_score['overall'] = 0;
-	foreach ( SCORING_CRITERIA as $category_id => $value ) {
-		// Score by category is calculated only for an specific user, when the user is editing a previous given score.
-		$weighted_score['overall'] += ( $single_score_category_sum[ $category_id ]['sum'] / $single_score_category_sum[ $category_id ]['item_count'] ) * $value['weight'];
-		$weighted_score['by_category'][ $category_id ] = $single_score_category_sum[ $category_id ]['sum'] / $single_score_category_sum[ $category_id ]['item_count'];
-	}
-
-	if ( array_sum( $weighted_score['by_category'] ) === 0 || $weighted_score['overall'] === 0 || $weighted_score['submission_score'] === 0 ) {
-		return null;
 	}
 
 	return $weighted_score;
+}
+
+/**
+ * Calculate the weighted sum of all factors in a scoring comment.
+ *
+ * @param [] $given_score Scoring details, as saved as comment content.
+ * @return float Weighted score, from 1-10.
+ */
+function calculate_weighted_score( $given_score ) {
+	$weighted_score = 0;
+
+	foreach ( SCORING_CRITERIA as $category_id => $value ) {
+		$weighted_score += calculate_score_for_category( $given_score, $category_id ) * $value['weight'];
+	}
+
+	return $weighted_score;
+}
+
+/**
+ * Calculate the average score for a category in a score comment.
+ *
+ * @param [] $given_score Full score details, as sabed to comment meta.
+ * @param string $category_key Key for the category being queried.
+ * @return float Average of the scores in the requested category.
+ */
+function calculate_score_for_category( $given_score, $category_key ) {
+	$category = SCORING_CRITERIA[ $category_key ];
+
+	// Get the values which make up this category's score.
+	$values = array_map(
+		function ( $criteria_key ) use ( $given_score, $category_key ) {
+			return $given_score[ "scoring_criteria_{$category_key}_{$criteria_key}" ] ?? 0;
+		},
+		array_keys( $category['criteria'] )
+	);
+
+	if ( empty( $values ) ) {
+		return 0;
+	}
+
+	return array_sum( $values ) / count( $values );
 }
 
 /**
