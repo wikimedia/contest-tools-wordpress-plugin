@@ -368,7 +368,7 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
 }
 
 /**
- * Get user assigned score on the specified post.
+ * Get user assigned score on the specified post, for current contest phase.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id_id User ID which inserted scoring comments.
@@ -384,6 +384,12 @@ function get_submission_score_given_by_user( $submission_id, $user_id ) : ?array
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	$comment = end( $comments );
@@ -418,8 +424,10 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'meta_query' => [
-			'key' => 'scoring_phase',
-			'value' => get_site_option( 'contest_status' ),
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
 		],
 	];
 
@@ -488,7 +496,7 @@ function get_submission_score( $submission_id, $user_id = null ) {
 }
 
 /**
- * Inactivate all past comments from the user, so we don't calculate them but keep the record.
+ * Inactivate all past comments from the user for current phase, so we don't sum them but keep the record.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id User ID which inserted scoring comments.
@@ -502,6 +510,12 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	foreach ( $comments as $comment ) {
