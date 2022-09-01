@@ -89,13 +89,13 @@ const selectOption = ( { target } ) => {
 	const hiddenInput = getField( target, '.gfield_hidden_input' );
 	const option = target.closest( '.gfield_option' );
 	const options = getFields( target, '.gfield_option' );
-	const { value } = option.dataset;
+	const { text, value } = option.dataset;
 
 	options.forEach( opt => opt.classList.remove( 'is-selected' ) );
 	option.classList.add( 'is-selected' );
 
 	hiddenInput.value = value;
-	getField( target, '.gfield_current_value' ).innerHTML = value;
+	getField( target, '.gfield_current_value' ).innerHTML = text;
 
 	/* eslint-disable no-unused-vars */
 	const [ id, formId, fieldId ] = hiddenInput.id.match( /input_([0-9]*)_([0-9]*)/ );
