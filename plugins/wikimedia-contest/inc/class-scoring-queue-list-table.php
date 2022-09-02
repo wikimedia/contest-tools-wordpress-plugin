@@ -167,8 +167,8 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 		}
 
 		// Add link 'Score submission' only if the submission is assigned to the user.
-		$assignees = get_post_meta( $item->ID, 'assignees', true );
-		if ( in_array( get_current_user_id(), $assignees, true ) ) {
+		$assignees = get_post_meta( $item->ID, 'assignees' );
+		if ( in_array( get_current_user_id(), $assignees ) ) {
 			$actions = [
 				'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
 					esc_html__( 'Score sound logo submission' ) .
