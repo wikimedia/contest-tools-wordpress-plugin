@@ -255,7 +255,14 @@ function render_scoring_interface() : void {
 		exit;
 	}
 
-	if ( ! empty( sanitize_text_field( $_POST['_score_submission_nonce'] ) ) ) {
+	// Do not render Scoring Interface if the submission isn't assigned to the current user.
+	$assignees = get_post_meta( $post_id, 'assignees' );
+	if ( ! in_array( get_current_user_id(), $assignees ) ) {
+		wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
+		exit;
+	}
+
+	if ( ! empty( sanitize_text_field( $_POST['_score_submission_nonce'] ?? '' ) ) ) {
 		handle_scoring_results();
 	}
 

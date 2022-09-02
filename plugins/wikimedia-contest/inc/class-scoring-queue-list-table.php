@@ -166,11 +166,15 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 			return;
 		}
 
-		$actions = [
-			'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
-				esc_html__( 'Score sound logo submission' ) .
-				'</a>',
-		];
+		// Add link 'Score submission' only if the submission is assigned to the user.
+		$assignees = get_post_meta( $item->ID, 'assignees' );
+		if ( in_array( get_current_user_id(), $assignees ) ) {
+			$actions = [
+				'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
+					esc_html__( 'Score sound logo submission' ) .
+					'</a>',
+			];
+		}
 
 		return $this->row_actions( $actions );
 	}
@@ -202,7 +206,8 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * Render the score given by user column on the phase.
 	 */
 	function column_col_user_score( $item ) {
-		$score = Scoring\get_submission_score( $item->ID, get_current_user_id() )['overall'];
+		$submission_score = Scoring\get_submission_score( $item->ID, get_current_user_id() );
+		$score = $submission_score['overall'] ?? '';
 		echo is_numeric( $score ) ? round( $score, 2) . " / 10" : '-';
 	}
 
@@ -228,9 +233,9 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	function column_col_scoring_completion( $item ) {
 		$scorer_count = get_post_meta( $item->ID, "scorer_count_{$this->scoring_phase}", true );
 		$scoring_phase_completion = get_post_meta( $item->ID, "score_completion_{$this->scoring_phase}", true );
-		echo sprintf( '%s complete ( %d / %s scorers )',
-			round( $scoring_phase_completion * 100, 2 ) . "%",
-			$scorer_count,
+		echo sprintf( '%s complete ( %d / %d scorers )',
+			round( floatval( $scoring_phase_completion ) * 100, 2 ) . "%",
+			intval( $scorer_count ),
 			\Wikimedia_Contest\Scoring\SCORERS_NEEDED_EACH_PHASE[ $this->scoring_phase ]
 		);
 	}

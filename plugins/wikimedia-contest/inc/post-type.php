@@ -256,9 +256,9 @@ function custom_submission_column( $column, $post_id ) : void {
 		case 'col_scoring_completion':
 			$scorer_count = get_post_meta( $post_id, 'scorer_count_' . get_site_option( 'contest_status' ), true );
 			$scoring_phase_completion = get_post_meta( $post_id, 'score_completion_' . get_site_option( 'contest_status' ), true );
-			echo sprintf( '%s complete ( %d / %s scorers )',
-				round( $scoring_phase_completion * 100, 2 ) . "%",
-				$scorer_count,
+			echo sprintf( '%s complete ( %s / %s scorers )',
+				round( ( floatval( $scoring_phase_completion ) * 100), 2 ) . "%",
+				intval( $scorer_count ),
 				\Wikimedia_Contest\Scoring\SCORERS_NEEDED_EACH_PHASE[ get_site_option( 'contest_status' ) ]
 			);
 			break;
