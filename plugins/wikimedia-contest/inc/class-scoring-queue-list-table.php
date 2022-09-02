@@ -128,6 +128,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 
 		if ( current_user_can( 'assign_scorers' ) ) {
 			$columns["col_phase_score"] = '"' . $custom_post_statuses[ $this->scoring_phase ]->label . "\" Phase Score";
+			$columns["col_scoring_completion"] = '"' . $custom_post_statuses[ $this->scoring_phase ]->label . "\" Completion";
 			$columns['assignees'] =  __( 'Assignees', 'wikimedia-contest-admin' );
 		}
 
@@ -147,6 +148,7 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 
 		if ( current_user_can( 'assign_scorers' ) ) {
 			$columns['col_phase_score'] = [ "col_{$this->scoring_phase}_score", true ];
+			$columns['col_scoring_completion'] = [ "col_{$this->scoring_phase}_completion", true ];
 		}
 
 		return $columns;
@@ -164,11 +166,15 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 			return;
 		}
 
-		$actions = [
-			'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
-				esc_html__( 'Score sound logo submission' ) .
-				'</a>',
-		];
+		// Add link 'Score submission' only if the submission is assigned to the user.
+		$assignees = get_post_meta( $item->ID, 'assignees' );
+		if ( in_array( get_current_user_id(), $assignees ) ) {
+			$actions = [
+				'screen' => '<a href="' . esc_url( Scoring\get_scoring_link( $item->ID ) ) . '">' .
+					esc_html__( 'Score sound logo submission' ) .
+					'</a>',
+			];
+		}
 
 		return $this->row_actions( $actions );
 	}
@@ -200,8 +206,9 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 * Render the score given by user column on the phase.
 	 */
 	function column_col_user_score( $item ) {
-		$score = Scoring\get_submission_score( $item->ID, get_current_user_id() )['overall'];
-		echo is_numeric( $score ) ? round( $score, 2) : '-';
+		$submission_score = Scoring\get_submission_score( $item->ID, get_current_user_id() );
+		$score = $submission_score['overall'] ?? '';
+		echo is_numeric( $score ) ? round( $score, 2) . " / 10" : '-';
 	}
 
 	/**
@@ -209,6 +216,27 @@ class Scoring_Queue_List_Table extends WP_Posts_List_Table {
 	 */
 	function column_col_phase_score( $item ) {
 		$score = get_post_meta( $item->ID, "score_{$this->scoring_phase}", true );
-		echo is_numeric( $score ) ? round( $score, 2) : '-';
+		$scoring_phase_completion = get_post_meta( $item->ID, "score_completion_{$this->scoring_phase}", true );
+		if ( is_numeric( $score ) ) {
+			if ( (int) $scoring_phase_completion !== 1 ) {
+				echo '*';
+			}
+			echo round( $score, 2) . " / 10";
+		} else {
+			echo '-';
+		}
+	}
+
+	/**
+	 * Render the phase scoring completion.
+	 */
+	function column_col_scoring_completion( $item ) {
+		$scorer_count = get_post_meta( $item->ID, "scorer_count_{$this->scoring_phase}", true );
+		$scoring_phase_completion = get_post_meta( $item->ID, "score_completion_{$this->scoring_phase}", true );
+		echo sprintf( '%s complete ( %d / %d scorers )',
+			round( floatval( $scoring_phase_completion ) * 100, 2 ) . "%",
+			intval( $scorer_count ),
+			\Wikimedia_Contest\Scoring\SCORERS_NEEDED_EACH_PHASE[ $this->scoring_phase ]
+		);
 	}
 }

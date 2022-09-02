@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 
 /**
  * Yes/no answers from the creation process.
@@ -19,11 +19,11 @@ $creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Screen Submission', 'wikimedia-contest-admin' ); ?></h1>
 	<hr class="wp-header-end" />
 
-	<div class="carded_content_container">
-		<?php include( __DIR__ . '/sound-info.php' ); ?>
-	</div>
-
 	<form method="POST">
+		<div class="carded_content_container">
+			<?php include( __DIR__ . '/sound-info.php' ); ?>
+		</div>
+
 		<div class="carded_content_container">
 			<div class="card">
 				<?php wp_nonce_field( 'screen-submission', '_screen_submission_nonce' ); ?>
@@ -36,7 +36,7 @@ $creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
 				</p>
 				<ul>
 				<?php
-				foreach ( Screening_Results\get_moderation_flags() as $key => $value ) {
+				foreach ( Screening\get_moderation_flags() as $key => $value ) {
 					$id = sanitize_key( "option_{$key}" );
 					?>
 						<li>

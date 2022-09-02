@@ -53,6 +53,17 @@ const SCORING_STATUSES = [
 ];
 
 /**
+ * How many scorers are needed for each of scoring phase.
+ *
+ * @var array
+ */
+const SCORERS_NEEDED_EACH_PHASE = [
+	'scoring_phase_1' => 2,
+	'scoring_phase_2' => 10,
+	'scoring_phase_3' => 12,
+];
+
+/**
  * Abstracting the score categories, weights and criteria.
  *
  * @var array
@@ -62,16 +73,16 @@ const SCORING_CRITERIA = [
 		'weight'   => 0.5,
 		'label'    => 'Conceptual Match (%d%% weighting)',
 		'criteria' => [
-			'represent_spirit' => 'To what extent does the sound represent the spirit of the Wikimedia movement?',
-			'closely_communicate' => 'How closely does the sound communicate one of the creative prompts?',
+			'represent_spirit' => 'To what extent does the sound logo represent the spirit of the Wikimedia movement?',
+			'closely_communicate' => 'How closely does the sound logo communicate one of the creative prompts?',
 			'feel_human' => 'To what extent does it feel human, inspired, smart and warm?',
 		]
 	],
 	'originality' => [
 		'weight'   => 0.25,
-		'label'    => 'Originality (%s%% weighting)',
+		'label'    => 'Originality / Uniqueness (%s%% weighting)',
 		'criteria' => [
-			'original_unique' => 'To what extent does the sound feel original and unique?',
+			'original_unique' => 'To what extent does the sound logo feel original and unique?',
 			'stand_out' => 'How much does it stand out compared to other sound logos?',
 		]
 	],
@@ -94,11 +105,6 @@ function bootstrap() : void {
 	add_action( 'init', __NAMESPACE__ . '\\register_scorer_roles' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_scoring_menu_pages' );
-	add_action( 'bulk_actions-edit-submission', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\add_bulk_assignment_controls' );
-	add_action( 'handle_bulk_actions-edit-submission-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
-	add_action( 'handle_bulk_actions-scoring-queue', __NAMESPACE__ . '\\handle_bulk_assignment_controls', 10, 3 );
-	add_filter( 'wp_list_table_show_post_checkbox', __NAMESPACE__ . '\\show_bulk_actions_cb_for_panelist_leads', 10, 2 );
 	add_action( 'pre_get_posts', __NAMESPACE__ . '\\register_meta_orderby' );
 }
 
@@ -198,34 +204,6 @@ function render_scoring_queue() : void {
 
 	require_once __DIR__ . '/class-scoring-queue-list-table.php';
 
-	// If any success messages exist, render them here.
-	if ( ! empty( $_REQUEST['success'] ) ) {
-		$count = intval( $_REQUEST['count'] );
-
-		switch( $_REQUEST['success'] ):
-		case 'assign':
-
-			$user = get_user_by( 'id', $_REQUEST['user'] );
-			$message = sprintf(
-				/* translators: 1. number of submissions affected, 2. scoring panelist's name. */
-				__( 'Assigned %d submissions to %s', 'wikimedia-contest-admin' ),
-				$count,
-				$user->display_name ?? 'a scorer'
-			);
-			break;
-		case 'remove-assignees':
-			$message = sprintf(
-				/* translators: number of submissions affected. */
-				__( 'Removed all assignees from %d submissions', 'wikimedia-contest-admin' ),
-				$count
-			);
-		endswitch;
-
-			if ( ! empty( $message ) ) {
-				echo '<div id="message" class="updated notice is-dismissible"><p>' .  $message . '</p></div>';
-			}
-	}
-
 	$list_table = new Scoring_Queue_List_Table();
 	$list_table->prepare_items();
 
@@ -238,7 +216,6 @@ function render_scoring_queue() : void {
 	// Hook into the list-tables API for running actions.
 	$current_action = $list_table->current_action();
 	$current_screen = $list_table->screen;
-
 	if ( ! empty( $current_action )  ) {
 
 		// Run through the handle_bulk_actions filter; this can be used to add
@@ -252,7 +229,6 @@ function render_scoring_queue() : void {
 
 		wp_safe_redirect( $return_url );
 	}
-
 
 	echo '<div id="scoring-queue" class="wrap">';
 	echo '<h1 class="wp-heading-inline">' . esc_html__( 'Scoring Queue - Contest Phase:', 'wikimedia-contest-admin' ) . ' <b>' . $custom_post_statuses[ $current_contest_phase_option ]->label  . '</b></h1>';
@@ -279,7 +255,14 @@ function render_scoring_interface() : void {
 		exit;
 	}
 
-	if ( ! empty( sanitize_text_field( $_POST['_score_submission_nonce'] ) ) ) {
+	// Do not render Scoring Interface if the submission isn't assigned to the current user.
+	$assignees = get_post_meta( $post_id, 'assignees' );
+	if ( ! in_array( get_current_user_id(), $assignees ) ) {
+		wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
+		exit;
+	}
+
+	if ( ! empty( sanitize_text_field( $_POST['_score_submission_nonce'] ?? '' ) ) ) {
 		handle_scoring_results();
 	}
 
@@ -312,7 +295,7 @@ function handle_scoring_results() : void {
 
 	$post_id = sanitize_text_field( $_REQUEST['post'] ?? null );
 
-	if ( ! current_user_can( 'score-submissions' ) ) {
+	if ( ! current_user_can( 'score_submissions' ) ) {
 		return;
 	}
 
@@ -330,6 +313,7 @@ function handle_scoring_results() : void {
 		'additional_comment' => $additional_comment,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_scoring_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=scoring-queue' ) );
 	exit;
@@ -387,11 +371,11 @@ function add_scoring_comment( int $submission_id, array $results, $user_id ) : v
 	// Update the submission overall weighted score for current contest phase.
 	$submission_current_phase_score = get_submission_score( $submission_id );
 	$current_contest_phase = get_site_option( 'contest_status' );
-	update_post_meta( $submission_id, 'score_' . $current_contest_phase, $submission_current_phase_score['overall'] );
+	update_post_meta( $submission_id, 'score_' . $current_contest_phase, $submission_current_phase_score['submission_score'] );
 }
 
 /**
- * Get user assigned score on the specified post.
+ * Get user assigned score on the specified post, for current contest phase.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id_id User ID which inserted scoring comments.
@@ -407,6 +391,12 @@ function get_submission_score_given_by_user( $submission_id, $user_id ) : ?array
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	$comment = end( $comments );
@@ -441,9 +431,10 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'meta_query' => [
-			'key' => 'scoring_phase',
-			'value' => get_site_option( 'contest_status' ),
-			'compare' => '=',
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
 		],
 	];
 
@@ -456,32 +447,87 @@ function get_submission_score( $submission_id, $user_id = null ) {
 		return null;
 	}
 
-	$category_sum = [];
+	/*
+		Using the comments fetched to update the number of scorers that
+		already scored this submission, and the completion for the phase.
+	*/
+	if ( $user_id === null ) {
+		$current_contest_phase = get_site_option( 'contest_status' );
+
+		// Storing scorers count.
+		update_post_meta( $submission_id, "scorer_count_{$current_contest_phase}", count( $comments ) );
+
+		// Storing the reason between scorers count and needed scorers to allow sorting by this column.
+		update_post_meta( $submission_id, "score_completion_{$current_contest_phase}", count( $comments ) / SCORERS_NEEDED_EACH_PHASE[ $current_contest_phase ] );
+	}
+
+	$total_submission_score = 0;
+
 	foreach ( $comments as $comment ) {
 		$comment_score_content = json_decode( get_comment_meta( $comment->comment_ID, 'given_score', true ), true );
+		$total_submission_score += calculate_weighted_score( $comment_score_content );
+	}
+
+	$weighted_score = [
+		'submission_score' => $total_submission_score / count( $comments ),
+		'overall' => 0,
+		'by_category' => [],
+	];
+
+	if ( $user_id ) {
+		$weighted_score['overall'] = $weighted_score['submission_score'];
+
 		foreach ( SCORING_CRITERIA as $category_id => $value ) {
-			foreach ( $value['criteria'] as $criteria_id => $_ ) {
-				$category_sum[ $category_id ]['sum'] += $comment_score_content["scoring_criteria_{$category_id}_{$criteria_id}"];
-				$category_sum[ $category_id ]['item_count']++;
-			}
+			$weighted_score['by_category'][ $category_id ] = calculate_score_for_category( $comment_score_content, $category_id );
 		}
-	}
-
-	$weighted_score = [];
-	foreach ( SCORING_CRITERIA as $category_id => $value ) {
-		$weighted_score['overall'] += ( $category_sum[ $category_id ]['sum'] / $category_sum[ $category_id ]['item_count'] ) * $value['weight'];
-		$weighted_score['by_category'][ $category_id ] = $category_sum[ $category_id ]['sum'] / $category_sum[ $category_id ]['item_count'];
-	}
-
-	if ( array_sum( $weighted_score['by_category'] ) === 0 || $weighted_score['overall'] === 0 ) {
-		return null;
 	}
 
 	return $weighted_score;
 }
 
 /**
- * Inactivate all past comments from the user, so we don't calculate them but keep the record.
+ * Calculate the weighted sum of all factors in a scoring comment.
+ *
+ * @param [] $given_score Scoring details, as saved as comment content.
+ * @return float Weighted score, from 1-10.
+ */
+function calculate_weighted_score( $given_score ) {
+	$weighted_score = 0;
+
+	foreach ( SCORING_CRITERIA as $category_id => $value ) {
+		$weighted_score += calculate_score_for_category( $given_score, $category_id ) * $value['weight'];
+	}
+
+	return $weighted_score;
+}
+
+/**
+ * Calculate the average score for a category in a score comment.
+ *
+ * @param [] $given_score Full score details, as sabed to comment meta.
+ * @param string $category_key Key for the category being queried.
+ * @return float Average of the scores in the requested category.
+ */
+function calculate_score_for_category( $given_score, $category_key ) {
+	$category = SCORING_CRITERIA[ $category_key ];
+
+	// Get the values which make up this category's score.
+	$values = array_map(
+		function ( $criteria_key ) use ( $given_score, $category_key ) {
+			return $given_score[ "scoring_criteria_{$category_key}_{$criteria_key}" ] ?? 0;
+		},
+		array_keys( $category['criteria'] )
+	);
+
+	if ( empty( $values ) ) {
+		return 0;
+	}
+
+	return array_sum( $values ) / count( $values );
+}
+
+/**
+ * Inactivate all past comments from the user for current phase, so we don't sum them but keep the record.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @param int $user_id User ID which inserted scoring comments.
@@ -495,113 +541,17 @@ function inactivate_user_scoring_comments( $submission_id, $user_id ) : void {
 		'agent' => COMMENT_AGENT,
 		'status' => 'approve',
 		'user_id' => $user_id,
+		'meta_query' => [
+			[
+				'key' => 'scoring_phase',
+				'value' => get_site_option( 'contest_status' ),
+			],
+		],
 	] );
 
 	foreach ( $comments as $comment ) {
 		wp_set_comment_status( $comment->comment_ID, 'hold' );
 	}
-}
-
-/**
- * Update bulk actions available for scorers in the submissions list table.
- *
- * @param [] $bulk_actions Items available in the bulk actions dropdown.
- * @return [] Updated bulk actions array.
- */
-function add_bulk_assignment_controls( $bulk_actions ) {
-
-	if ( current_user_can( 'assign_scorers' ) && in_array( get_post_status(), SCORING_STATUSES, true ) ) {
-		$scoring_panel =
-		$assignment_dropdown = [];
-
-		foreach ( get_scoring_panel_members() as $user ) {
-			$assignment_dropdown[ "assign-{$user->ID}" ] = sprintf(
-				__( 'Assign %s', 'wikimedia-contest-admin' ),
-				$user->display_name
-			);
-		}
-
-		$bulk_actions[ __( 'Assign to', 'wikimedia-contest-admin' ) ] = $assignment_dropdown;
-
-		$bulk_actions['remove-assignees'] = __( 'Remove assignees', 'wikimedia-contest-admin' );
-	}
-
-	if ( ! current_user_can( 'edit_submissions' ) ) {
-		unset( $bulk_actions['edit'] );
-		unset( $bulk_actions['trash'] );
-	}
-
-	return $bulk_actions;
-}
-
-/**
- * Allow panelist leads to see the bulk action checkboxes.
- *
- * The bulk actions functionality is normally only exposed to users with the
- * edit-posts cap. This ensures that even users who can't edit posts, but can
- * assign scorers, can use these controls.
- *
- * @param bool $show Whether to show the bulk actions checkbox.
- * @param WP_Post $post Post being rendered.
- * @return bool Whether to show the bulk checkbox.
- */
-function show_bulk_actions_cb_for_panelist_leads( $show, $post ) {
-	if ( in_array( $post->post_status, SCORING_STATUSES, true ) && current_user_can( 'assign_scorers' ) ) {
-		$show = true;
-	}
-
-	return $show;
-}
-
-/**
- * Handle user-initiated bustom bulk actions.
- *
- * @param string $return_url URL of the page to return to after completion.
- * @param string $action Name of action being performed.
- * @param int[] $post_ids Array of IDs of posts checked.
- */
-function handle_bulk_assignment_controls( $return_url, $action, $post_ids ) {
-
-	if ( strpos( $action, 'assign-' ) === 0 ) {
-		$user_id = intval( substr( $action, 7 ) );
-
-		if ( in_array( $user_id, wp_list_pluck( get_scoring_panel_members(), 'ID' ), true ) ) {
-			foreach ( $post_ids as $post_id ) {
-				$assignees = get_post_meta( $post_id, 'assignees' ) ?: [];
-				$assignees[] = $user_id;
-
-				delete_post_meta( $post_id, 'assignees' );
-				foreach ( array_unique( array_filter( $assignees ) ) as $assignee ) {
-					add_post_meta( $post_id, 'assignees', $assignee );
-				}
-			}
-		}
-
-		$return_url = add_query_arg(
-			[
-				'success' => 'assign',
-				'user' => $user_id,
-				'count' => count( $post_ids )
-			],
-			$return_url
-		);
-	}
-
-	if ( $action === 'remove-assignees' ) {
-		foreach ( $post_ids as $post_id ) {
-			delete_post_meta( $post_id, 'assignees' );
-		}
-
-		$return_url = add_query_arg(
-			[
-				'success' => 'remove-assignees',
-				'count' => count( $post_ids )
-			],
-			$return_url
-		);
-	}
-
-	wp_safe_redirect( $return_url );
 }
 
 /**
@@ -630,8 +580,11 @@ function register_meta_orderby( $query ) : void {
 
 	foreach ( $custom_post_statuses as $custom_post_status ) {
 		if ( $orderby === "col_{$custom_post_status->name}_score" ) {
-			$query->set( 'meta_key','score_' . $custom_post_status->name );
-			$query->set( 'orderby','meta_value_num' );
+			$query->set( 'meta_key', 'score_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
+		} elseif ( $orderby === "col_{$custom_post_status->name}_completion" ) {
+			$query->set( 'meta_key', 'score_completion_' . $custom_post_status->name );
+			$query->set( 'orderby', 'meta_value_num' );
 		}
 	}
 }

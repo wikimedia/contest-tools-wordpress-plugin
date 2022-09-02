@@ -8,7 +8,7 @@
  * @package wikimedia-contest;
  */
 
-namespace Wikimedia_Contest\Screening_Results;
+namespace Wikimedia_Contest\Screening;
 
 use Wikimedia_Contest\Post_Type;
 use Wikimedia_Contest\Screening_Queue_List_Table;
@@ -68,7 +68,11 @@ function register_screener_role() {
 		);
 
 		foreach ( [ 'administrator', 'scoring_panel_lead' ] as $role ) {
-			get_role( $role )->add_cap( 'view_screening_results' );
+			$role_object = get_role( $role );
+
+			if ( $role_object ) {
+				$role_object->add_cap( 'view_screening_results' );
+			}
 		}
 
 		$roles['screener'] = 2;
@@ -176,6 +180,7 @@ function handle_screening_results() {
 		'message' => $message_other,
 	];
 
+	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 }
@@ -270,18 +275,28 @@ function add_screening_comment( int $submission_id, array $results, $user_id = 0
 }
 
 /**
+ * Get all screening comments on post.
+ *
+ * @param int $submission_id Submission ID.
+ * @return WP_Comment[] Array of screening comments.
+ */
+function get_screening_comments( $submission_id ) {
+	return get_comments( [
+		'post_id' => $submission_id,
+		'type' => COMMENT_TYPE,
+		'agent' => COMMENT_AGENT,
+		'status' => 'any',
+	] );
+}
+
+/**
  * Get all screening results on the specified post.
  *
  * @param int $submission_id Post ID of the submission to retrieve results for.
  * @return array Array of result data.
  */
 function get_screening_results( $submission_id ) {
-	$comments = get_comments( [
-		'post_id' => $submission_id,
-		'type' => COMMENT_TYPE,
-		'agent' => COMMENT_AGENT,
-		'status' => 'any',
-	] );
+	$comments = get_screening_comments( $submission_id );
 
 	$results_format = [
 		'decision' => [],
@@ -306,6 +321,42 @@ function get_screening_results( $submission_id ) {
 	);
 
 	return $screening_results;
+}
+
+/**
+ * Get details about screening comments.
+ *
+ * Returns an array, padded to 3 items, with 'name', 'date', 'status', and
+ * 'reason' fields. Used for reporting and logs.
+ *
+ * @param int $submission_id Submission ID to query.
+ * @return [] Details about screeners, time, and judgement.
+ */
+function get_screening_details( $submission_id ) {
+	$screeners_comments = wp_list_filter(
+		get_screening_comments( $submission_id ),
+		[ 'user_id' => 0 ],
+		'NOT'
+	);
+
+	// Structure of return value. Includes null for empty fields.
+	$required_fields = [
+		'comment_author' => null,
+		'comment_date_gmt' => null,
+		'comment_approved' => null,
+		'comment_content' => null,
+	];
+
+	return array_pad(
+		array_map(
+			function ( $comment ) use ( $required_fields ) {
+				return array_intersect_key( (array) $comment, $required_fields );
+			},
+			$screeners_comments
+		),
+		3,
+		$required_fields
+	);
 }
 
 /**

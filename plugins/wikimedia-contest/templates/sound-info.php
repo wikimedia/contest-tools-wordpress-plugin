@@ -5,7 +5,7 @@
  * @package wikimedia-contest
  */
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 
 $post_id = $post_id ?? get_the_ID();
 
@@ -27,6 +27,13 @@ $explanation_creation = get_post_meta( $post_id, 'explanation_creation', true ) 
 $explanation_inspiration = get_post_meta( $post_id, 'explanation_inspiration', true ) ?: '';
 
 /**
+ * Translations of creation/inspiration fields for non-English language submissions.
+ *
+ * @var string[]
+ */
+$translated_fields = get_post_meta( $post_id, 'translated_fields', true ) ?: [ 'creation' => '', 'inspiration' => '' ];
+
+/**
  * Yes/no answers from the creation process.
  *
  * @var [] Key => value for all fields.
@@ -45,7 +52,14 @@ $audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
  *
  * @var string
  */
-$audio_file_meta =  get_post_meta( $post_id, 'audio_file_meta', true ) ?: '';
+$audio_file_meta = get_post_meta( $post_id, 'audio_file_meta', true ) ?: [];
+
+/**
+ * Whether the translation fields should be editable.
+ *
+ * @var bool
+ */
+$is_editable = get_current_screen()->base !== 'post';
 
 /**
  * Create more user-friendly labels for audio file metadata.
@@ -64,8 +78,8 @@ $audio_file_meta_labels = [
  *
  * @var []
  */
-$screening_results = Screening_Results\get_screening_results( $post_id );
-$available_flags = Screening_Results\get_available_flags();
+$screening_results = Screening\get_screening_results( $post_id );
+$available_flags = Screening\get_available_flags();
 
 if ( $screening_results['flags'] !== null ) {
 	$flags = array_intersect( $screening_results['flags'], array_keys( $available_flags )  );
@@ -76,9 +90,9 @@ $flag_labels = array(
 	'all_original_sounds'     => __( 'Completely original work', 'wikimedia-contest-admin' ),
 	'cc0_or_public_domain'    => __( 'Used sounds are CC0 or public domain', 'wikimedia-contest-admin' ),
 	'used_prerecorded_sounds' => __( 'Used prerecorded sounds', 'wikimedia-contest-admin' ),
-	'used_soundpack_library'  => __( 'Work from sound pack or a sample library', 'wikimedia-contest-admin' ),
+	'used_soundpack_library'  => __( 'Worked from a sound pack or a sample library', 'wikimedia-contest-admin' ),
 	'used_samples'            => __( 'Used one or more samples', 'wikimedia-contest-admin' ),
-	'source_urls'             => __( 'Source URLs of not created sounds', 'wikimedia-contest-admin' ),
+	'source_urls'             => __( 'Source URLs of pre-recorded sounds', 'wikimedia-contest-admin' ),
 );
 ?>
 
@@ -91,8 +105,10 @@ $flag_labels = array(
 	<h3>Audio Metadata</h3>
 	<ul>
 		<?php
-			foreach ( $audio_file_meta as $key => $value ) {
-				echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+			if ( is_array( $audio_file_meta ) ) {
+				foreach ( $audio_file_meta as $key => $value ) {
+					echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+				}
 			}
 		?>
 	</ul>
@@ -114,21 +130,43 @@ $flag_labels = array(
 	<dl>
 		<?php foreach ( $creation_process as $key => $value ) : ?>
 			<dt><?php echo "<b>" . esc_html( $flag_labels[ $key ] ) . "</b>"; ?></dt>
-			<dd><?php echo empty( $value ) ? '<i>-</i>' : esc_html( $value ); ?></dd>
+			<dd><?php
+				if ( $key === 'source_urls' ) {
+					echo wpautop( make_clickable( $value ) );
+				} else {
+					echo empty( $value ) ? '<i>-</i>' : esc_html( $value );
+				}
+			?></dd>
 		<?php endforeach; ?>
 	</dl>
 </div>
 
-<div class="card">
+<div class="card with-translation">
 	<h3><?php esc_html_e( 'Brief explanation of how the sound logo was created', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
+
+	<textarea
+		name="translated_fields[creation]"
+		class="widefat translation"
+		cols="30" rows="5"
+		placeholder="Translate here if non-English"
+		<?php echo ! $is_editable ? 'readonly' : ''; ?>
+	><?php echo esc_textarea( $translated_fields['creation'] ); ?></textarea>
 </div>
 
-<div class="card">
+<div class="card with-translation">
 	<h3><?php esc_html_e( 'Brief explanation of what the sound logo means', 'wikimedia-contest-admin' ); ?></h3>
 	<div class="sound-details-textarea">
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>
+
+	<textarea
+		name="translated_fields[inspiration]"
+		class="widefat translation"
+		cols="30" rows="5"
+		placeholder="Translate here if non-English"
+		<?php echo ! $is_editable ? 'readonly' : ''; ?>
+	><?php echo esc_textarea( $translated_fields['inspiration'] ); ?></textarea>
 </div>

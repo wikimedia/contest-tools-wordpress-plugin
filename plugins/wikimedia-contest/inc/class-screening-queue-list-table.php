@@ -9,7 +9,7 @@
 
 namespace Wikimedia_Contest;
 
-use Wikimedia_Contest\Screening_Results;
+use Wikimedia_Contest\Screening;
 use WP_Posts_List_Table;
 use WP_Query;
 
@@ -47,6 +47,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	function filter_posts_clauses( $sql_pieces ) {
 		global $wpdb;
 		$user_id = get_current_user_id();
+		$current_time = microtime( true );
 
 		$sql_pieces['join'] .= $wpdb->prepare( "
 			LEFT OUTER JOIN {$wpdb->comments}
@@ -55,6 +56,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 				AND {$wpdb->comments}.comment_agent = 'screening_result'
 				AND {$wpdb->comments}.user_id = %d
 			)
+			/* {$current_time} */
 			",
 			$user_id
 		);
@@ -152,7 +154,7 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 		}
 
 		$actions = [
-			'screen' => '<a href="' . Screening_Results\get_screening_link( $item->ID ) . '">' .
+			'screen' => '<a href="' . Screening\get_screening_link( $item->ID ) . '">' .
 				esc_html__( 'Screen sound logo submission' ) .
 				'</a>',
 		];
@@ -198,9 +200,9 @@ class Screening_Queue_List_Table extends WP_Posts_List_Table {
 	 * @param WP_Post $item Item being output.
 	 */
 	function column_col_screening_results( $item ) {
-		$screening_results = Screening_Results\get_screening_results( $item->ID );
-		$available_flags = Screening_Results\get_available_flags();
-		$moderation_flags = Screening_Results\get_moderation_flags();
+		$screening_results = Screening\get_screening_results( $item->ID );
+		$available_flags = Screening\get_available_flags();
+		$moderation_flags = Screening\get_moderation_flags();
 
 		if ( $screening_results['flags'] ) {
 			foreach ( $screening_results['flags'] as $flag ) {
