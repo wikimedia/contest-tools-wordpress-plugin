@@ -111,13 +111,21 @@ const handleKeyboardNavigation = event => {
 			return toggleButton;
 		default:
 			let searchPointer = currentItem;
+
+			// If the current item is already past the alphabetic entry
+			// requested, restart from the beginning of the list.
+			if ( searchPointer.innerText.slice( 0, 1 ).toLowerCase() > key.toLowerCase() ) {
+				searchPointer = getField( currentItem, '.gfield_option' );
+			}
+
 			// for any alphabetic input, look for the next element node
 			// matching that character and select it, if found.
 			/* eslint-disable no-cond-assign */
 			while ( searchPointer = searchPointer.nextElementSibling ) {
-				if ( searchPointer.innerText.toUpperCase().startsWith( key ) ) {
+				if ( searchPointer.innerText.toLowerCase().startsWith( key.toLowerCase() ) ) {
 					searchPointer.querySelector( 'button' ).focus();
 					searchPointer.scrollIntoView( { block: 'center' } );
+					break;
 				}
 			}
 	}
