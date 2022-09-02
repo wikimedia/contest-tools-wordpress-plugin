@@ -7,7 +7,9 @@
 
 use Wikimedia_Contest\Screening;
 
-current_user_can( 'manage_options' ) || wp_die( esc_html__( 'You do not have sufficient permissions to access this page.' ) );
+if ( ! current_user_can( 'manage_options' ) ) {
+	wp_die( esc_html__( 'You do not have sufficient permissions to access this page.' ) );
+}
 
 $submission_id = get_the_ID();
 $submission_post = get_post($submission_id);
