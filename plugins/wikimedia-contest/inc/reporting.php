@@ -126,10 +126,37 @@ function format_submission_for_csv( $submission ) {
 		];
 	}
 
-	foreach ( Scoring\SCORING_STATUSES as $scoring_status ) {
+	foreach ( Scoring\SCORERS_NEEDED_EACH_PHASE as $scoring_status => $number_of_panelists ) {
 		$label = get_post_status_object( $scoring_status )->label;
+
 		$score = get_post_meta( $submission->ID, "score_{$scoring_status}", true );
 		$output_row[ "$label Avg. Weighted Score" ] = $score ? sprintf( '%.2f / 10', $score ) : '-';
+
+		$scoring_comments = get_comments( [
+			'post_id' => $submission->ID,
+			'type' => Scoring\COMMENT_TYPE,
+			'agent' => Scoring\COMMENT_AGENT,
+			'status' => 'approve',
+			'meta_query' => [
+				[
+					'key' => 'scoring_phase',
+					'value' => get_site_option( 'contest_status' ),
+				],
+			],
+			'number' => $number_of_panelists,
+		] );
+
+		foreach ( array_pad( $scoring_comments, $number_of_panelists, null ) as $i => $comment ) {
+			$index = $i + 1;
+			$score_details = json_decode( get_comment_meta( $comment->comment_ID ?? '', 'given_score', true ), true );
+			$weighted_score = Scoring\calculate_weighted_score( $score_details );
+
+			$output_row = $output_row + [
+				"{$label} Panelist {$index} Name" => $comment->comment_author ?? '',
+				"{$label} Panelist {$index} Date" => $comment->comment_date_gmt ?? '',
+				"{$label} Panelist {$index} Score" => $weighted_score ? round( $weighted_score, 2 ) : '-',
+			];
+		}
 	}
 
 	return $output_row;
