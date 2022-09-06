@@ -140,7 +140,7 @@ function format_submission_for_csv( $submission ) {
 			'meta_query' => [
 				[
 					'key' => 'scoring_phase',
-					'value' => get_site_option( 'contest_status' ),
+					'value' => $scoring_status,
 				],
 			],
 			'number' => $number_of_panelists,
