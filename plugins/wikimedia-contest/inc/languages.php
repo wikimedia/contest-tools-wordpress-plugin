@@ -23,8 +23,9 @@ function languages_setup() {
 
 	// Retrieve the directory for the internationalization files.
 	// It needs to be relative path to WP_PLUGIN_DIR where the .mo file resides.
-	$languages_directory = dirname( plugin_basename( __FILE__ ), 2 ) . '/languages';
+	$languages_directory = dirname( plugin_basename( __FILE__ ), 4 ) . '/languages';
 
 	// Load the text domain for the language files.
-	load_plugin_textdomain( 'wikimedia-contest', false, $languages_directory );
+	load_plugin_textdomain( 'wikimedia-contest' );
+	load_plugin_textdomain( 'wikimedia-contest-admin' );
 }

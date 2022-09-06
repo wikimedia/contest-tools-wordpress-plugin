@@ -35,17 +35,17 @@ function bootstrap() {
 function register_submission_custom_post_type() {
 
 	$labels = [
-		'name'                => _x( 'Submissions', 'Post Type General Name', 'wikimedia-contest' ),
-		'singular_name'       => _x( 'Submission', 'Post Type Singular Name', 'wikimedia-contest' ),
-		'menu_name'           => __( 'Submissions', 'wikimedia-contest' ),
-		'all_items'           => __( 'All Submissions', 'wikimedia-contest' ),
-		'view_item'           => __( 'View Submission', 'wikimedia-contest' ),
-		'edit_item'           => __( 'Submission Details', 'wikimedia-contest' ),
+		'name'                => _x( 'Submissions', 'Post Type General Name', 'wikimedia-contest-admin' ),
+		'singular_name'       => _x( 'Submission', 'Post Type Singular Name', 'wikimedia-contest-admin' ),
+		'menu_name'           => __( 'Submissions', 'wikimedia-contest-admin' ),
+		'all_items'           => __( 'All Submissions', 'wikimedia-contest-admin' ),
+		'view_item'           => __( 'View Submission', 'wikimedia-contest-admin' ),
+		'edit_item'           => __( 'Submission Details', 'wikimedia-contest-admin' ),
 	];
 
 	$args = [
-		'label'               => __( 'Submissions', 'wikimedia-contest' ),
-		'description'         => __( 'Audio submission from a contest participant', 'wikimedia-contest' ),
+		'label'               => __( 'Submissions', 'wikimedia-contest-admin' ),
+		'description'         => __( 'Audio submission from a contest participant', 'wikimedia-contest-admin' ),
 		'labels'              => $labels,
 		'hierarchical'        => false,
 		'public'              => true,
@@ -148,7 +148,7 @@ function register_submission_custom_post_statuses() {
 function add_submission_box() : void {
 	add_meta_box(
 		'submission_box',
-		__( 'Submission Details', 'wikimedia-contest' ),
+		__( 'Submission Details', 'wikimedia-contest-admin' ),
 		__NAMESPACE__ . '\\submission_metabox_html',
 		SLUG,
 		'normal',
@@ -362,7 +362,7 @@ function custom_inline_edit() : void {
  */
 function customize_row_actions( $actions ) : array {
 	if ( get_post_type() === 'submission' ) {
-		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest' ) .'</a>';
+		$actions['edit'] = '<a href="' . get_edit_post_link() . '">'. __( 'View Submission', 'wikimedia-contest-admin' ) .'</a>';
 		unset( $actions['view'] );
 		unset( $actions['trash'] );
 	}
