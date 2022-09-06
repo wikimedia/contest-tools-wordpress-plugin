@@ -32,6 +32,7 @@ const MAX_FILE_SIZE = 100000000;
  * Bootstrap form functionality.
  */
 function bootstrap() {
+	add_action( 'init', __NAMESPACE__ . '\\maybe_update_db_config' );
 	add_filter( 'allowed_block_types', __NAMESPACE__ . '\\filter_blocks', 20, 2 ); // After shiro theme defines the allowed blocks.
 	add_action( 'wp_enqueue_scripts', __NAMESPACE__ . '\\enqueue_form_scripts' );
 	add_filter( 'gform_pre_render', __NAMESPACE__ . '\\identify_audio_meta_field', 10, 3 );
@@ -40,6 +41,26 @@ function bootstrap() {
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
 	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4);
 	add_filter( 'gform_replace_merge_tags', __NAMESPACE__ . '\\replace_merge_tags', 10, 7 );
+}
+
+/**
+ * Update the AUTOINCREMENT id for GF entries to avoid collisions.
+ */
+function maybe_update_db_config() {
+	global $wpdb;
+	$gf_db_config_updated = get_option( 'wikimedia_gf_db_config' );
+
+	if ( ! $gf_db_config_updated ) {
+		$auto_increment = get_current_blog_id() * 10000;
+		$success = $wpdb->query(
+			$wpdb->prepare(
+				"ALTER TABLE {$wpdb->prefix}gf_entry AUTO_INCREMENT = %d;",
+				$auto_increment
+			)
+		);
+
+		update_option( 'wikimedia_gf_db_config', $success );
+	}
 }
 
 /**
