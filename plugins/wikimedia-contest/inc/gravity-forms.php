@@ -165,6 +165,8 @@ function enqueue_form_scripts() {
 			'handle' => 'wikimedia_contest_submission_form',
 		]
 	);
+
+	wp_set_script_translations( 'wikimedia_contest_submission_form', 'wikimedia-contest', WP_LANG_DIR . '/plugins' );
 }
 
 /**
