@@ -18,11 +18,11 @@ $score_given_weighted = Scoring\get_submission_score( $post_id, get_current_user
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Score Submission', 'wikimedia-contest-admin' ); ?></h1>
 	<hr class="wp-header-end" />
 
-	<form method="POST">
-		<div class="carded_content_container">
-			<?php include( __DIR__ . '/sound-info.php' ); ?>
-		</div>
+	<div class="carded_content_container">
+		<?php include( __DIR__ . '/sound-info.php' ); ?>
+	</div>
 
+	<form method="POST">
 		<div class="carded_content_container">
 
 			<div class="card">

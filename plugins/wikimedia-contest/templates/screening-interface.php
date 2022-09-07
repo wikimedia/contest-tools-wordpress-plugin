@@ -19,11 +19,11 @@ $creation_process = get_post_meta( $post_id, 'creation_process', true ) ?: [];
 	<h1 class="wp-heading-inline"><?php esc_html_e( 'Screen Submission', 'wikimedia-contest-admin' ); ?></h1>
 	<hr class="wp-header-end" />
 
-	<form method="POST">
-		<div class="carded_content_container">
-			<?php include( __DIR__ . '/sound-info.php' ); ?>
-		</div>
+	<div class="carded_content_container">
+		<?php include( __DIR__ . '/sound-info.php' ); ?>
+	</div>
 
+	<form method="POST">
 		<div class="carded_content_container">
 			<div class="card">
 				<?php wp_nonce_field( 'screen-submission', '_screen_submission_nonce' ); ?>

@@ -25,6 +25,7 @@ function bootstrap() {
 	add_action( 'admin_footer-edit.php', __NAMESPACE__ . '\\custom_inline_edit');
 	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_unused_boxes');
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\customize_row_actions', 10, 1 );
+	add_action( 'admin_post_save-translation', __NAMESPACE__ . '\\ajax_save_translation' );
 }
 
 /**
@@ -266,19 +267,21 @@ function custom_submission_column( $column, $post_id ) : void {
 }
 
 /**
- * Update the "translated content" meta field in response to user input.
- *
- * @param int $post_id Post ID being updated.
- * @param [] $translation_submission Submitted translations.
- * @return bool Whether updates were made.
+ * Handle saving submitted translations on a submission.
  */
-function update_translations( $post_id, $translation_submission ) {
-	$translation_submission = array_intersect_key(
-		array_map( 'sanitize_textarea_field', $translation_submission ),
-		array_flip( [ 'creation', 'inspiration' ] )
-	);
+function ajax_save_translation() {
+	check_admin_referer( 'save_translation' );
+	$post_id = intval( $_POST['post_id'] );
 
-	return update_post_meta( $post_id, 'translated_fields', $translation_submission );
+	if ( ! $post_id || get_post_type( $post_id ) !== 'submission' ) {
+		wp_send_json_error();
+	}
+
+	$existing_translations = (array) get_post_meta( (int) $_POST['post_id'], 'translated_fields', true );
+	$translated_fields = array_map( 'sanitize_textarea_field', $_POST['translated_fields'] );
+
+	update_post_meta( $post_id, 'translated_fields', $existing_translations + $translated_fields );
+	wp_send_json_success( __( 'Saved successfully', 'wikimedia-contest-admin' ) );
 }
 
 /**
@@ -290,6 +293,12 @@ function update_translations( $post_id, $translation_submission ) {
  */
 function submission_metabox_html( $post ) : void {
 
+	/*
+	 * Close the "post" form, to make space for our own forms (in the
+	 * translation boxes).
+	 */
+	echo '</form>';
+
 	echo '<div class="carded_content_container">';
 	include __DIR__ . '/../templates/sound-info.php';
 	echo '</div>';
@@ -297,6 +306,8 @@ function submission_metabox_html( $post ) : void {
 	echo '<div class="carded_content_container">';
 	include __DIR__ . '/../templates/submission-details.php';
 	echo '</div>';
+
+	echo '<form>';
 }
 
 /**
