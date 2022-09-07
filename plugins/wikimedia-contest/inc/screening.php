@@ -342,6 +342,7 @@ function get_screening_details( $submission_id ) {
 	// Structure of return value. Includes null for empty fields.
 	$required_fields = [
 		'comment_author' => null,
+		'comment_date' => null,
 		'comment_date_gmt' => null,
 		'comment_approved' => null,
 		'comment_content' => null,
