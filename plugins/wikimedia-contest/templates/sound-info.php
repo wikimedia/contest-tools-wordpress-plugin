@@ -55,13 +55,6 @@ $audio_file =  get_post_meta( $post_id, 'audio_file', true ) ?: '';
 $audio_file_meta = get_post_meta( $post_id, 'audio_file_meta', true ) ?: [];
 
 /**
- * Whether the translation fields should be editable.
- *
- * @var bool
- */
-$is_editable = get_current_screen()->base !== 'post';
-
-/**
  * Create more user-friendly labels for audio file metadata.
  */
 $audio_file_meta_labels = [
@@ -98,7 +91,7 @@ $flag_labels = array(
 
 <div class="card">
 	<h3>Entry ID: <?php echo esc_html( is_numeric( $gf_entry_id ) ? $gf_entry_id : '-' ); ?></h3>
-	<audio controls><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
+	<audio controls controlslist="nodownload"><source src="<?php echo esc_attr( $audio_file ); ?>"></audio>
 
 	<br><br><hr>
 
@@ -112,18 +105,17 @@ $flag_labels = array(
 			}
 		?>
 	</ul>
-</div>
 
-<?php
+	<?php
 	if ( count( $flags ?? [] ) ) {
-		echo '<div class="card">';
 		echo '<h3>' . esc_html__( 'Automated flags', 'wikimedia-contest-admin' ) . '</h3>';
 		foreach ( $flags as $flag ) {
 			echo '<span class="moderation-flag moderation-flag--yellow">' . $available_flags[ $flag ] . '</span>';
 		}
-		echo '</div>';
 	}
-?>
+	?>
+
+</div>
 
 <div class="card">
 	<h3><?php esc_html_e( 'Creation Process (answers from the submission form)', 'wikimedia-contest-admin' ); ?></h3>
@@ -147,13 +139,21 @@ $flag_labels = array(
 		<?php echo wpautop( $explanation_creation ); ?>
 	</div>
 
-	<textarea
-		name="translated_fields[creation]"
-		class="widefat translation"
-		cols="30" rows="5"
-		placeholder="Translate here if non-English"
-		<?php echo ! $is_editable ? 'readonly' : ''; ?>
-	><?php echo esc_textarea( $translated_fields['creation'] ); ?></textarea>
+	<form class="translation" action="<?php echo admin_url( 'admin-post.php' ); ?>">
+		<textarea
+			name="translated_fields[creation]"
+			class="widefat translation"
+			cols="30" rows="5"
+			placeholder="Translate here if non-English"
+		><?php echo esc_textarea( $translated_fields['creation'] ); ?></textarea>
+		<?php wp_nonce_field( 'save_translation' ); ?>
+		<input type="hidden" name="post_id" value="<?php echo esc_attr( $post_id ); ?>" />
+		<input type="hidden" name="action" value="save-translation" />
+		<p>
+			<input type="submit" class="button" value="<?php esc_attr_e( 'Save translation', 'wikimedia-contest-admin' ); ?>" />
+			<span class="description"></span>
+		</p>
+	</form>
 </div>
 
 <div class="card with-translation">
@@ -162,11 +162,19 @@ $flag_labels = array(
 		<?php echo wpautop( $explanation_inspiration ); ?>
 	</div>
 
-	<textarea
-		name="translated_fields[inspiration]"
-		class="widefat translation"
-		cols="30" rows="5"
-		placeholder="Translate here if non-English"
-		<?php echo ! $is_editable ? 'readonly' : ''; ?>
-	><?php echo esc_textarea( $translated_fields['inspiration'] ); ?></textarea>
+	<form class="translation" action="<?php echo admin_url( 'admin-post.php' ); ?>">
+		<textarea
+			name="translated_fields[inspiration]"
+			class="widefat translation"
+			cols="30" rows="5"
+			placeholder="Translate here if non-English"
+		><?php echo esc_textarea( $translated_fields['inspiration'] ); ?></textarea>
+		<?php wp_nonce_field( 'save_translation' ); ?>
+		<input type="hidden" name="post_id" value="<?php echo esc_attr( $post_id ); ?>" />
+		<input type="hidden" name="action" value="save-translation" />
+		<p>
+			<input type="submit" class="button" value="<?php esc_attr_e( 'Save translation', 'wikimedia-contest-admin' ); ?>" />
+			<span class="description"></span>
+		</p>
+	</form>
 </div>

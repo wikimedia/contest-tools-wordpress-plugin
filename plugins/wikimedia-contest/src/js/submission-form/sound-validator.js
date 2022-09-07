@@ -92,6 +92,15 @@ const validateSoundFile = async ( { target } ) => {
 
 	const { name, size, type } = file;
 
+	/*
+	 * Safari is unable to parse .ogg files properly. If the file looks like an
+	 * OGG, but the browser can't determine the type, we'll assume that's the
+	 * case and give it a pass.
+	 */
+	if ( name.toLowerCase().endsWith( '.ogg' ) && ! type ) {
+		return;
+	}
+
 	// Validate file type.
 	if ( ! window.audioFileAllowedMimeTypes.includes( type ) ) {
 		validations.push( {

@@ -6,3 +6,4 @@
 
 require( './admin/screeners-interface' );
 require( './admin/scoring-interface' );
+require( './admin/save-translations' );
