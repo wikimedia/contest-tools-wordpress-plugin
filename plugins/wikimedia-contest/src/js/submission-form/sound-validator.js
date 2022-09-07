@@ -97,7 +97,7 @@ const validateSoundFile = async ( { target } ) => {
 	 * OGG, but the browser can't determine the type, we'll assume that's the
 	 * case and give it a pass.
 	 */
-	if ( name.endsWith( '.ogg' ) && ! type ) {
+	if ( name.toLowerCase().endsWith( '.ogg' ) && ! type ) {
 		return;
 	}
 

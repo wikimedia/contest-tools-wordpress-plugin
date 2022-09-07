@@ -9,6 +9,7 @@ namespace Wikimedia_Contest\Gravity_Forms;
 
 use Asset_Loader;
 use Asset_Loader\Manifest;
+use GFFormsModel;
 use RGFormsModel;
 use Wikimedia_Contest\Network_Library;
 
@@ -39,7 +40,7 @@ function bootstrap() {
 	add_filter( 'gform_field_validation', __NAMESPACE__ . '\\audio_file_validation_messsages', 10, 4 );
 	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 5 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
-	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4);
+	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4 );
 	add_filter( 'gform_replace_merge_tags', __NAMESPACE__ . '\\replace_merge_tags', 10, 7 );
 }
 
@@ -239,6 +240,17 @@ function audio_file_validation_messsages( $result, $value, $form, $field ) {
 		'sampleRate' => $sample_rate,
 		'size' => $file_size,
 	] = json_decode( RGFormsModel::get_field_value( $meta_field ), true );
+
+	/*
+	 * If client-side sound validation failed and the file looks like an OGG,
+	 * just let it go. Safari only has partial support for OGGs, and we don't
+	 * want to prevent Safari users from submitting entries.
+	 */
+	$input_name = "input_{$field['id']}";
+	$filename = $_FILES[ $input_name ]['name'] ?? GFFormsModel::$uploaded_files[ $form['id'] ][ $input_name ] ?? '';
+	if ( empty( $file_type ) && strtolower( substr( $filename, -4 ) ) === '.ogg' ) {
+		return $result;
+	}
 
 	if ( empty( $file_type ) || ! in_array( $file_type, ALLOWED_TYPES, true ) ) {
 		return [
