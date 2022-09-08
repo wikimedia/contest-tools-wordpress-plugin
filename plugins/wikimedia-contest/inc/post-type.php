@@ -22,6 +22,7 @@ function bootstrap() {
 	add_filter( 'manage_edit-submission_columns', __NAMESPACE__ . '\\set_custom_edit_submission_columns' );
 	add_action( 'manage_submission_posts_custom_column', __NAMESPACE__ . '\\custom_submission_column', 10, 2 );
 	add_filter( 'manage_edit-submission_sortable_columns', __NAMESPACE__ . '\\custom_sortable_columns' );
+	add_action( 'posts_clauses', __NAMESPACE__ . '\\handle_custom_orderby_params', 10, 2 );
 	add_action( 'admin_footer-edit.php', __NAMESPACE__ . '\\custom_inline_edit');
 	add_action( 'admin_menu', __NAMESPACE__ . '\\remove_unused_boxes');
 	add_filter( 'post_row_actions', __NAMESPACE__ . '\\customize_row_actions', 10, 1 );
@@ -192,6 +193,58 @@ function custom_sortable_columns( $columns ) {
 	$columns['col_phase_score'] = [ 'col_' . get_site_option( 'contest_status' ) . '_score', true ];
 	$columns["col_scoring_completion"] = [ 'col_' . get_site_option( 'contest_status' ) . '_completion', true ];
 	return $columns;
+}
+
+/**
+ * Handle SQL queries for custom sort parameters in submission list tables.
+ *
+ * When sorting a list of submissions by score, it's not expected that posts
+ * that haven't been scored yet will disappear from the list. This changes the
+ * way the DB query is built, so that all matching posts show up in sorted
+ * views.
+ *
+ * @param string[] $sql_pieces Each of the clauses of the built query.
+ * @param WP_Query $query Current request query.
+ * @return string[] Modified SQL clauses.
+ */
+function handle_custom_orderby_params( $sql_pieces, $query ) {
+	global $wpdb;
+	$status = get_site_option( 'contest_status' );
+
+	if (
+		$query->is_main_query() &&
+		current_user_can( 'assign_scorers' ) &&
+		in_array(
+			$query->query_vars['meta_key'],
+			[ "score_{$status}", "score_completion_{$status}" ],
+			true
+		)
+	) {
+		// Sanitize the query var, because we don't have access to wodb->prepare here.
+		$sort_key = sanitize_key( $query->query_vars['meta_key'] );
+
+		// Make the join an outer join to include posts without scores.
+		$sql_pieces['join'] = str_replace(
+			[
+				'INNER JOIN',
+				')',
+			],
+			[
+				'LEFT OUTER JOIN',
+				"AND {$wpdb->postmeta}.meta_key = '{$sort_key}' )",
+			],
+			$sql_pieces['join']
+		);
+
+		// Remove the requirement that a score value exists.
+		$sql_pieces['where'] = str_replace(
+			"{$wpdb->postmeta}.meta_key = '{$sort_key}'",
+			'1 = 1',
+			$sql_pieces['where']
+		);
+	}
+
+	return $sql_pieces;
 }
 
 /**
