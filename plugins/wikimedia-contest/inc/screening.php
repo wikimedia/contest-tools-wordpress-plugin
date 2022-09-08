@@ -172,15 +172,12 @@ function handle_screening_results() {
 
 	$flags = array_intersect_key( $_POST['moderation-flags'] ?? [], get_moderation_flags() );
 	$is_invalid = ! empty( $_POST['moderation-invalid'] ) || count( $flags );
-	$message_other = sanitize_text_field( $_POST['moderation-other'] );
 
 	$results = [
 		'status' => $is_invalid ? 'ineligible' : 'eligible',
 		'flags' => array_keys( $flags ),
-		'message' => $message_other,
 	];
 
-	Post_Type\update_translations( $post_id, $_POST['translated_fields'] );
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
 }
@@ -243,7 +240,6 @@ function get_moderation_flags() {
  * @param array $results Screening result fields.
  *   @var string 'status'  Status recommended by screener ('eligible'/'ineligible'/null for no decision).
  *   @var array  'flags'   Moderation flags assigned to post.
- *   @var string 'message' Free-text message field submitted with screening result.
  * @param int $user_id User ID for screener (0 for automatic flags).
  */
 function add_screening_comment( int $submission_id, array $results, $user_id = 0 ) {
@@ -266,7 +262,6 @@ function add_screening_comment( int $submission_id, array $results, $user_id = 0
 		'comment_content' => $comment_content,
 		'comment_meta' => [
 			'flags' => $flags,
-			'message' => $results['message'] ?? null,
 		],
 		'user_id' => $user_id,
 	] );
