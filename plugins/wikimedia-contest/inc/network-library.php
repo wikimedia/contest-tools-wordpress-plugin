@@ -33,6 +33,9 @@ function insert_submission( $post_data ) {
 	// Record the current site ID on the post.
 	$post_data['meta_input']['_submission_site'] = $current_site_id;
 
+	// Record the submission time in GMT format.
+	$post_data['post_date_gmt'] = date( 'Y-m-d H:i:s' );
+
 	// Switch to the main site to insert the post.
 	switch_to_blog( $main_site_id );
 	$post_id = wp_insert_post( $post_data );

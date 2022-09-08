@@ -1,18 +1,6 @@
 .moderation {
-
-	&__other {
-		display: flex;
-		flex-flow: column;
-		align-items: flex-start;
-		justify-content: space-between;
-
-		hr {
-			width: 100%;
-		}
-	}
-
-	&__submit {
-		margin-bottom: 10px;
+	&__submit.button {
+		margin: 10px 0;
 
 		.button__text--ineligible {
 			display: none;

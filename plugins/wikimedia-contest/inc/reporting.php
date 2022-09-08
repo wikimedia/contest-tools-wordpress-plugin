@@ -107,7 +107,7 @@ function output_submissions_report() {
 function format_submission_for_csv( $submission ) {
 	$output_row = [
 		'Entry ID' => $submission->post_title,
-		'Submission Date' => $submission->post_modified,
+		'Submission Date' => $submission->post_date_gmt,
 		'Submitter Name' => $submission->submitter_name,
 		'Submitter Email' => $submission->submitter_email,
 		'Gender' => $submission->submitter_gender,
