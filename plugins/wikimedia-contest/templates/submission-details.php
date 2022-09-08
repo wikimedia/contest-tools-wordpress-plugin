@@ -119,16 +119,18 @@ $scoring_comments = get_comments( [
 	<?php
 		foreach ( $scoring_comments as $comment ) {
 			$comment_meta = get_comment_meta( $comment->comment_ID );
+			$given_score = json_decode( array_shift( $comment_meta['given_score'] ), true);
+			$weighted_score = \Wikimedia_Contest\Scoring\calculate_weighted_score( $given_score );
 
 			echo "<div class='card fullcard'>";
 			echo "<ul>";
 			echo "<li><b>Date</b>: {$comment->comment_date}</li>";
 			echo "<li><b>User</b>: {$comment->comment_author}</li>";
 			echo "<li><b>Contest Phase</b>: " . array_shift( $comment_meta['scoring_phase'] ) ."</li>";
-			echo "<li><b>Given Score</b>: ";
+			printf( '<li><b>Weighted Score</b>: %.1f</li>', $weighted_score );
+			echo "<li><b>Score by Criteria</b>:";
 			echo "<ul>";
 
-			$given_score = json_decode( array_shift( $comment_meta['given_score'] ), true);
 			foreach ( \Wikimedia_Contest\Scoring\SCORING_CRITERIA as $category_id => $value ) {
 				foreach ( $value['criteria'] as $criteria_id => $text ) {
 					echo "<li>- {$text}: ";
