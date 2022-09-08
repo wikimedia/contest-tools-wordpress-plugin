@@ -70,14 +70,11 @@ function insert_submission( $post_data ) {
 function get_submission( $post_id ) {
 	$current_site_id = get_current_blog_id();
 	$main_site_id = get_main_site_id();
-	$translations = MultilingualPress\translationIds( $post_id, 'post', $main_site_id );
-
-	if ( array_key_exists( $current_site_id, $translations ) ) {
-		return get_post( $translations[ $current_site_id ] );
-	}
 
 	$is_subsite = switch_to_blog( get_main_site_id() );
+
 	$post = get_post( $post_id );
+	$post->meta_input = get_post_meta( $post_id ) ?: [];
 
 	if ( $is_subsite ) {
 		restore_current_blog();

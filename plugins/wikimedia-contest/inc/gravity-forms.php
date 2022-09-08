@@ -111,31 +111,28 @@ function replace_merge_tags( $text, $form, $entry, $url_encode, $esc_html, $nl2b
 		}
 
 		// Getting last submission post ID from entry metadata.
-		$last_submission_post_id = gform_get_meta( $entry['id'], 'submission_post_id' );
-		$last_submission_post = get_post( $last_submission_post_id );
-		if ( ! $last_submission_post ) {
-			return $text;
-		}
+		$submission_post_id = gform_get_meta( $entry['id'], 'submission_post_id' );
+		$submission_post = Network_Library\get_submission( $submission_post_id );
 
-		// Getting last submission post meta.
-		$submission_post_meta = get_post_meta( $last_submission_post_id ) ?? [];
-		if ( empty( $submission_post_meta ) ) {
+		if ( ! $submission_post || empty( $submission_post->meta_input ) ) {
 			return $text;
 		}
 
 		// Counting posts based on submitter_email meta key.
-		$number_of_posts = \Wikimedia_Contest\Network_Library\count_posts_by_submitter_email_meta( $submission_post_meta['submitter_email'][0] );
+		$number_of_posts = Network_Library\count_posts_by_submitter_email_meta(
+			$submission_post->meta_input['submitter_email'][0]
+		);
 		if ( ! $number_of_posts ) { // It should have one, at least.
 			return $text;
 		}
 
 		// Audio meta data.
-		$audio_file_meta = unserialize( $submission_post_meta['audio_file_meta'][0] );
+		$audio_file_meta = maybe_unserialize( $submission_post->meta_input['audio_file_meta'][0] );
 
 		// Setting up all merge tags.
 		$merge_tags = [
 			'{user_submission_count}' => $number_of_posts,
-			'{audio_file_name}'  => $audio_file_meta['name'],
+			'{audio_file_name}'  => $audio_file_meta['name'] ?? '-',
 		];
 
 		foreach ( $merge_tags as $tag => $value ) {
