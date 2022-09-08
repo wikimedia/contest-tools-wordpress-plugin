@@ -120,7 +120,7 @@ function format_submission_for_csv( $submission ) {
 
 		$output_row = $output_row + [
 			"Screener {$index} Name" => $comment['comment_author'],
-			"Screener {$index} Date" => $comment['comment_date_gmt'],
+			"Screener {$index} Date" => $comment['comment_date'],
 			"Screener {$index} Approval" => $comment['comment_approved'],
 			"Screener {$index} Reasons" => wp_sprintf( '%l', $flags ),
 		];
@@ -153,7 +153,7 @@ function format_submission_for_csv( $submission ) {
 
 			$output_row = $output_row + [
 				"{$label} Panelist {$index} Name" => $comment->comment_author ?? '',
-				"{$label} Panelist {$index} Date" => $comment->comment_date_gmt ?? '',
+				"{$label} Panelist {$index} Date" => $comment->comment_date ?? '',
 				"{$label} Panelist {$index} Score" => $weighted_score ? round( $weighted_score, 2 ) : '-',
 			];
 		}
