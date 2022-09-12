@@ -38,11 +38,9 @@ function identify_submitter_email_field( $form ) {
 
 	if ( $field ) {
 		$field_id = "input_{$field->formId}_{$field->id}";
-		$ajax_url = network_site_url( 'wp-admin/admin-ajax.php' );
-
 		echo "\r\n" . '<script type="text/javascript">var submitterEmailField = ' .
 			json_encode( [
-				'ajaxurl' => $ajax_url,
+				'ajaxurl' => admin_url( 'admin-ajax.php' ),
 				'field_id' => $field_id,
 			] ) . ';</script>';
 	}
