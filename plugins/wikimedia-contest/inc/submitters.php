@@ -39,10 +39,10 @@ function identify_submitter_email_field( $form ) {
 	if ( $field ) {
 		$field_id = "input_{$field->formId}_{$field->id}";
 		$ajax_url = network_site_url( 'wp-admin/admin-ajax.php' );
-
+		$blog_path = get_blog_details()->path;
 		echo "\r\n" . '<script type="text/javascript">var submitterEmailField = ' .
 			json_encode( [
-				'ajaxurl' => $ajax_url,
+				'ajaxurl' => $blog_path . $ajax_url,
 				'field_id' => $field_id,
 			] ) . ';</script>';
 	}
