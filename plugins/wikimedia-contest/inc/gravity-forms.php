@@ -67,22 +67,17 @@ function maybe_update_db_config() {
 }
 
 /**
- * Add the anchor link to the confirmation message to the confirmation redirect URL.
+ * Scroll to the confirmation message after submitting a form successfully.
  *
  * @param [] $confirmation GForms confirmation configuration.
  * @param [] $form GForms form configuration.
  * @return [] Updated confirmation configuration.
  */
 function update_confirmation_redirect_target( $confirmation, $form ) {
-	error_log( print_r( $confirmation, true ) );
-	if ( empty( $confirmation['redirect'] ) ) {
-		return $confirmation;
-	}
 
 	$inline_script = <<<EOF
 		window.addEventListener( 'load', function() {
 			var target = "#gform_confirmation_message_{$form['id']}";
-			console.log( 'scroll to', target );
 			window.smoothScrollTo( target );
 		} );
 EOF;
