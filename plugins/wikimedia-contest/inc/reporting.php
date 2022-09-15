@@ -144,6 +144,7 @@ function format_submission_for_csv( $submission ) {
 				],
 			],
 			'number' => $number_of_panelists,
+			'order' => 'ASC',
 		] );
 
 		foreach ( array_pad( $scoring_comments, $number_of_panelists, null ) as $i => $comment ) {

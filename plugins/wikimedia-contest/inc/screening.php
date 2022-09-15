@@ -281,6 +281,7 @@ function get_screening_comments( $submission_id ) {
 		'type' => COMMENT_TYPE,
 		'agent' => COMMENT_AGENT,
 		'status' => 'any',
+		'order' => 'ASC',
 	] );
 }
 
