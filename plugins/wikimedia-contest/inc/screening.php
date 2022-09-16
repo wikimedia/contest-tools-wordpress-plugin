@@ -232,6 +232,18 @@ function handle_screening_results() {
 		return;
 	}
 
+	if ( get_post_status( $post_id ) !== 'draft' ) {
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'message' => 'already-screened',
+					'post_id' => $post_id,
+				],
+				admin_url( 'admin.php?page=screening-queue' )
+			)
+		);
+	}
+
 	$flags = array_intersect_key( $_POST['moderation-flags'] ?? [], get_moderation_flags() );
 	$is_invalid = ! empty( $_POST['moderation-invalid'] ) || count( $flags );
 
