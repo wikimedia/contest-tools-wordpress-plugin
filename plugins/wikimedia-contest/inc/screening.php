@@ -124,9 +124,8 @@ function screening_admin_notices() {
 
 			case 'already-screened':
 				$message = sprintf(
-					__( '%s has already been screened and is now in stage "%s".', 'wikimedia-contest-admin' ),
-					$post_screened->post_title,
-					get_post_status_object( $post_screened->post_status )->label ?? ''
+					__( 'Thank you, %s has been screened. Please move on to the next submission in the queue.', 'wikimedia-contest-admin' ),
+					$post_screened->post_title
 				);
 				break;
 
