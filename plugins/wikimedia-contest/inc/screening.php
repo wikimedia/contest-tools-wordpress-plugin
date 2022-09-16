@@ -41,6 +41,7 @@ function bootstrap() {
 	add_action( 'init', __NAMESPACE__ . '\\register_screener_role' );
 	add_action( 'init', __NAMESPACE__ . '\\support_editorial_comments' );
 	add_action( 'admin_menu', __NAMESPACE__ . '\\register_screening_queue_menu_pages' );
+	add_action( 'admin_notices', __NAMESPACE__ . '\\screening_admin_notices' );
 	add_action( 'comments_clauses', __NAMESPACE__ . '\\add_agent_fields_to_query', 10, 2 );
 	add_action( 'wikimedia_contest_inserted_submission', __NAMESPACE__ . '\\inserted_submission', 10, 2 );
 	add_action( 'wikimedia_contest_added_screening_result', __NAMESPACE__ . '\\maybe_update_submission_status' );
@@ -107,6 +108,43 @@ function register_screening_queue_menu_pages() {
 }
 
 /**
+ * Output error messages, if there's a problem with the screening entry.
+ */
+function screening_admin_notices() {
+	if ( get_current_screen()->id !== 'toplevel_page_screening-queue' ) {
+		return;
+	}
+
+	if ( ! empty( $_REQUEST['post_id'] ) ) {
+		$post_screened = get_post( intval( $_REQUEST['post_id'] ) );
+
+		if ( $post_screened && $post_screened->post_type === 'submission' ) {
+
+			switch ( $_REQUEST['message'] ) {
+
+			case 'already-screened':
+				$message = sprintf(
+					__( 'Thank you, %s has already been screened. Please move on to the next submission in the queue.', 'wikimedia-contest-admin' ),
+					$post_screened->post_title
+				);
+				break;
+
+			case 'you-already-screened':
+				$message = sprintf(
+					__( 'You\'ve already entered a screening review on %s.', 'wikimedia-contest-admin' ),
+					$post_screened->post_title
+				);
+				break;
+			}
+
+			if ( $message ) {
+				echo '<div id="message" class="error notice is-dismissable"><p>' . $message . '</p></div>';
+			}
+		}
+	}
+}
+
+/**
  * Render the Screening Queue page.
  */
 function render_screening_queue() {
@@ -131,6 +169,33 @@ function render_screening_interface() {
 
 	if ( ! $post_id ) {
 		wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
+		exit;
+	}
+
+	if ( get_post_status( $post_id ) !== 'draft' ) {
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'message' => 'already-screened',
+					'post_id' => $post_id,
+				],
+				admin_url( 'admin.php?page=screening-queue' )
+			)
+		);
+		exit;
+	}
+
+	if ( current_user_already_screened( $post_id ) ) {
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'message' => 'you-already-screened',
+					'post_id' => $post_id,
+				],
+				admin_url( 'admin.php?page=screening-queue' )
+			)
+		);
+		exit;
 	}
 
 	if ( ! empty( $_POST['_screen_submission_nonce'] ) ) {
@@ -180,6 +245,7 @@ function handle_screening_results() {
 
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
+	exit;
 }
 
 /**
@@ -283,6 +349,19 @@ function get_screening_comments( $submission_id ) {
 		'status' => 'any',
 		'order' => 'ASC',
 	] );
+}
+
+/**
+ * Has the current user already screened a submission?
+ *
+ * @param int $submission_id Submission ID to check.
+ * @return bool Whether the user has already entered a screening comment.
+ */
+function current_user_already_screened( $submission_id ) {
+	$screening_comments = get_screening_comments( $submission_id );
+
+	return in_array( get_current_user_id(), wp_list_pluck( $screening_comments, 'user_id' ) );
+
 }
 
 /**
