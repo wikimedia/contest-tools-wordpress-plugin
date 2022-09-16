@@ -169,6 +169,7 @@ function render_screening_interface() {
 
 	if ( ! $post_id ) {
 		wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
+		exit;
 	}
 
 	if ( get_post_status( $post_id ) !== 'draft' ) {
@@ -181,6 +182,7 @@ function render_screening_interface() {
 				admin_url( 'admin.php?page=screening-queue' )
 			)
 		);
+		exit;
 	}
 
 	if ( current_user_already_screened( $post_id ) ) {
@@ -193,6 +195,7 @@ function render_screening_interface() {
 				admin_url( 'admin.php?page=screening-queue' )
 			)
 		);
+		exit;
 	}
 
 	if ( ! empty( $_POST['_screen_submission_nonce'] ) ) {
@@ -232,18 +235,6 @@ function handle_screening_results() {
 		return;
 	}
 
-	if ( get_post_status( $post_id ) !== 'draft' ) {
-		wp_safe_redirect(
-			add_query_arg(
-				[
-					'message' => 'already-screened',
-					'post_id' => $post_id,
-				],
-				admin_url( 'admin.php?page=screening-queue' )
-			)
-		);
-	}
-
 	$flags = array_intersect_key( $_POST['moderation-flags'] ?? [], get_moderation_flags() );
 	$is_invalid = ! empty( $_POST['moderation-invalid'] ) || count( $flags );
 
@@ -254,6 +245,7 @@ function handle_screening_results() {
 
 	add_screening_comment( $post_id, $results, get_current_user_id() );
 	wp_safe_redirect( admin_url( 'admin.php?page=screening-queue' ) );
+	exit;
 }
 
 /**
