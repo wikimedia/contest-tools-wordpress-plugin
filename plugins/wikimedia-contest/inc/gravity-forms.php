@@ -9,6 +9,7 @@ namespace Wikimedia_Contest\Gravity_Forms;
 
 use Asset_Loader;
 use Asset_Loader\Manifest;
+use GFCommon;
 use GFFormsModel;
 use RGFormsModel;
 use Wikimedia_Contest\Network_Library;
@@ -40,6 +41,7 @@ function bootstrap() {
 	add_filter( 'gform_field_validation', __NAMESPACE__ . '\\audio_file_validation_messsages', 10, 4 );
 	add_filter( 'gform_field_input', __NAMESPACE__ . '\\render_accessible_select_field', 10, 5 );
 	add_action( 'gform_entry_created', __NAMESPACE__ . '\\handle_entry_submission', 10, 2 );
+	add_filter( 'gform_confirmation', __NAMESPACE__ . '\\update_confirmation_redirect_target', 10, 2 );
 	add_filter( 'gform_custom_merge_tags', __NAMESPACE__ . '\\custom_merge_tags', 10, 4 );
 	add_filter( 'gform_replace_merge_tags', __NAMESPACE__ . '\\replace_merge_tags', 10, 7 );
 }
@@ -62,6 +64,25 @@ function maybe_update_db_config() {
 
 		update_option( 'wikimedia_gf_db_config', $success );
 	}
+}
+
+/**
+ * Scroll to the confirmation message after submitting a form successfully.
+ *
+ * @param [] $confirmation GForms confirmation configuration.
+ * @param [] $form GForms form configuration.
+ * @return [] Updated confirmation configuration.
+ */
+function update_confirmation_redirect_target( $confirmation, $form ) {
+
+	$inline_script = <<<EOF
+		window.addEventListener( 'load', function() {
+			var target = "#gform_confirmation_message_{$form['id']}";
+			window.smoothScrollTo( target );
+		} );
+EOF;
+
+	return $confirmation . GFCommon::get_inline_script_tag( $inline_script );;
 }
 
 /**
