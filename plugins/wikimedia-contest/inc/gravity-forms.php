@@ -376,21 +376,18 @@ function handle_entry_submission( $entry, $form ) {
 		$formatted_entry['submitter_country'] ?? '';
 
 	// Contributing authors: any data in fields matching this label format.
+	$contributor_fields = array_map(
+		function( $index ) {
+			return "contributor_{$index}";
+		},
+		range( 1, 99 )
+	);
+
 	$contributing_authors = array_filter(
 		array_values(
 			array_intersect_key(
 				$formatted_entry,
-				array_flip( [
-					'contributor_1',
-					'contributor_2',
-					'contributor_3',
-					'contributor_4',
-					'contributor_5',
-					'contributor_6',
-					'contributor_7',
-					'contributor_8',
-					'contributor_9',
-				] )
+				array_flip( $contributor_fields )
 			)
 		)
 	);
