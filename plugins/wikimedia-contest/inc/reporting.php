@@ -63,7 +63,7 @@ function output_submissions_report() {
 		wp_die( 'You are not authorize to view reports' );
 	}
 
-	$output = fopen( 'php://output', 'w');
+	$output = fopen( 'php://output', 'w' );
 	$filename = 'Sound Logo Submission report ' . date( 'Y-m-d His' ) . '.csv';
 	header( 'Content-Disposition: attachment; filename="' . sanitize_file_name( $filename ) . '"' );
 
@@ -110,8 +110,10 @@ function format_submission_for_csv( $submission ) {
 		'Submission Date' => $submission->post_date_gmt,
 		'Submitter Name' => $submission->submitter_name,
 		'Submitter Email' => $submission->submitter_email,
+		'Wikimedia Username' => $submission->submitter_wiki_user,
 		'Gender' => $submission->submitter_gender,
 		'Country' => $submission->submitter_country,
+		'Contributors' => wp_sprintf( '%l', get_post_meta( $submission->ID, 'contributing_authors', true ) ),
 	];
 
 	foreach ( array_slice( Screening\get_screening_details( $submission->ID ), 0, 3 ) as $i => $comment ) {

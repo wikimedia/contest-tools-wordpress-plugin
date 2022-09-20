@@ -49,6 +49,13 @@ $scoring_comments = get_comments( [
 					echo "<li><b>$label</b>: {$submission_meta[$key][0]}</li>";
 				}
 			}
+
+			$contributing_authors = (array) get_post_meta( $submission_id, 'contributing_authors', true );
+
+			echo wp_sprintf(
+				__( '<li><b>Contributing Authors</b>: %l</li>', 'wikimedia-contest-admin' ),
+				$contributing_authors
+			);
 		?>
 	</ul>
 </div>
