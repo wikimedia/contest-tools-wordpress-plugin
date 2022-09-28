@@ -100,7 +100,11 @@ $flag_labels = array(
 		<?php
 			if ( is_array( $audio_file_meta ) ) {
 				foreach ( $audio_file_meta as $key => $value ) {
-					echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+                    if ( $key == 'name' && ( current_user_can( 'screen_submissions' ) ) ) {
+                        echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+                    } elseif ( $key !== 'name' ) {
+                        echo '<li>' . sprintf( $audio_file_meta_labels[ $key ], $value ) . '</li>';
+                        }
 				}
 			}
 		?>
