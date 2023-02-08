@@ -6,6 +6,8 @@
 
 const { submitterEmailField } = window;
 
+const { DOMPurify } = window;
+
 /**
  * Cached DOM sselector to hold email input field.
  *
@@ -58,7 +60,7 @@ const checkEmailAddress = ( { target } ) => {
 			wrap.classList.toggle( 'gform_validation_error', ! success || wrap.querySelector( '.gfield_error' ) );
 
 			// Add a validation message to the form field.
-			validationMessage.innerHTML = data || '';
+			validationMessage.innerHTML = DOMPurify.sanitize( data || '' );
 		} )
 		/* eslint-disable no-console */
 		.catch( console.error );

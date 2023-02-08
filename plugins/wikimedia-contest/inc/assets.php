@@ -14,7 +14,22 @@ use Asset_Loader\Manifest;
  * Bootstrap all editor functionality.
  */
 function bootstrap() {
+	add_action( 'init', __NAMESPACE__ . '\\register_assets' );
 	add_action( 'admin_enqueue_scripts', __NAMESPACE__ . '\\enqueue_assets' );
+}
+
+/**
+ * Register dependency assets used in frontend and backend scripts.
+ */
+function register_assets() {
+	// Dependency.
+	wp_register_script(
+		'dompurify',
+		plugin_dir_url( __DIR__ ) . "assets/purify.min.js",
+		[],
+		'2.4.3',
+		true
+	);
 }
 
 /**
@@ -41,6 +56,7 @@ function enqueue_assets() : void {
 		'adminStyles.css',
 		[
 			'handle' => 'contest-admin-styles',
+			'dependencies' => [ 'dompurify' ],
 		]
 	);
 }

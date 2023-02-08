@@ -4,6 +4,7 @@
  * @package
  */
 
+const { DOMPurify } = window;
 const translationForms = [ ...document.querySelectorAll( 'form.translation' ) ];
 
 /**
@@ -28,7 +29,7 @@ const handleTranslationSubmit = event => {
 		}
 	).then( response => response.json() )
 		.then( response => {
-			submitter.nextElementSibling.innerHTML = response.data;
+			submitter.nextElementSibling.innerHTML = DOMPurify.sanitize( response.data );
 			setTimeout( () => {
 				submitter.removeAttribute( 'disabled' );
 				submitter.nextElementSibling.innerHTML = '';

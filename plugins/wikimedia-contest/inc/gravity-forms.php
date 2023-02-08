@@ -201,6 +201,7 @@ function enqueue_form_scripts() {
 				'gform_gravityforms',
 				'wp-a11y',
 				'wp-i18n',
+				'dompurify',
 			],
 			'handle' => 'wikimedia_contest_submission_form',
 		]

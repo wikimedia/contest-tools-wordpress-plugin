@@ -16,6 +16,8 @@ import jQuery from 'jquery';
 import { speak } from '@wordpress/a11y';
 import { __ } from '@wordpress/i18n';
 
+const { DOMPurify } = window;
+
 /**
  * Reference to the browser's AudioContext.
  *
@@ -46,9 +48,9 @@ const markValidation = ( field, messageObjects ) => {
 	const isError = messageObjects.map( ( { error } ) => error ).includes( true );
 	const messages = messageObjects.map( ( { message } ) => message );
 
-	messageElement[0].innerHTML = '<ul>' +
+	messageElement[0].innerHTML = DOMPurify.sanitize( '<ul>' +
 		messageObjects.reduce( ( list, { error, message } ) => `${ list }<li class="${ error ? 'error' : 'warning' }">${ message }</li>`, '' ) +
-		'</ul>';
+		'</ul>' );
 	speak( messages.join( ', ' ) );
 
 	field.setCustomValidity( isError ? messages.join( ', ' ) : '' );

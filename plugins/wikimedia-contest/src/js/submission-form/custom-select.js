@@ -4,7 +4,7 @@
  * @package
  */
 
-const { gf_input_change } = window;
+const { gf_input_change, DOMPurify } = window;
 
 /**
  * Cached DOM selectors to attach and remove functionality.
@@ -149,7 +149,7 @@ const selectOption = ( { target } ) => {
 	option.classList.add( 'is-selected' );
 
 	hiddenInput.value = value;
-	getField( target, '.gfield_current_value' ).innerHTML = text;
+	getField( target, '.gfield_current_value' ).innerHTML = DOMPurify.sanitize( text );
 
 	/* eslint-disable no-unused-vars */
 	const [ id, formId, fieldId ] = hiddenInput.id.match( /input_([0-9]*)_([0-9]*)/ );
