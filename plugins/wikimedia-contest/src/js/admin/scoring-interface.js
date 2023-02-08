@@ -50,7 +50,6 @@ const checkValidField = ( { currentTarget } ) => {
  * If so, enable the submit button
  *
  * @returns {void}
- *
  */
 const checkAllFields = () => {
 	const scoringFields = document.querySelectorAll( '.scoring-field' );
