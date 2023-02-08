@@ -34,6 +34,9 @@ Screening\bootstrap();
 require_once __DIR__ . '/inc/scoring.php';
 Scoring\bootstrap();
 
+require_once __DIR__ . '/inc/security.php';
+Security\bootstrap();
+
 require_once __DIR__ . '/inc/assets.php';
 Assets\bootstrap();
 
