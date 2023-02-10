@@ -48,6 +48,7 @@ function enqueue_assets() : void {
 		'admin.js',
 		[
 			'handle' => 'contest-admin-scripts',
+			'dependencies' => [ 'dompurify' ],
 		]
 	);
 
@@ -56,7 +57,6 @@ function enqueue_assets() : void {
 		'adminStyles.css',
 		[
 			'handle' => 'contest-admin-styles',
-			'dependencies' => [ 'dompurify' ],
 		]
 	);
 }
