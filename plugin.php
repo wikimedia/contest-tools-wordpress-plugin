@@ -1,14 +1,14 @@
 <?php
 /**
- * Plugin Name: Wikimedia Contest
- * Description: Manage the Wikimedia Contests
+ * Plugin Name: Contest Tools for Gravity Forms
+ * Description: Manage contests within Gravity Forms
  * Version:     1.0.0
  * Author:      Human Made
  * Author URI:  https://github.com/humanmade
  * Text Domain: wikimedia-contest-admin
  * Domain Path: /languages
  *
- * @package wikimedia-contest
+ * @package contest-tools-wordpress-plugin
  * @version 1.0.0
  */
 
