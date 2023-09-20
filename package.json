@@ -1,0 +1,48 @@
+{
+    "name": "contest-tools-wordpress-plugin",
+    "version": "0.1.0",
+    "private": true,
+    "description": "A set of contest related tools for use with the Gravity Forms Wordpress plugin",
+    "author": "Human Made",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/wikimedia/contest-tools-wordpress-plugin#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/wikimedia/contest-tools-wordpress-plugin.git"
+    },
+    "bugs": {
+        "url": "https://github.com/wikimedia/contest-tools-wordpress-plugin/issues"
+    },
+    "keywords": [
+        "wordpress",
+        "gutenberg",
+        "block-editor"
+    ],
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "devDependencies": {
+        "@humanmade/webpack-helpers": "^1.0.0-beta.15",
+        "babel-eslint": "^10.1.0",
+        "eslint": "^7.32.0",
+        "eslint-plugin-flowtype": "^3.13.0",
+        "eslint-plugin-import": "^2.26.0",
+        "eslint-plugin-jsdoc": "^29.2.0",
+        "eslint-plugin-jsx-a11y": "^6.5.1",
+        "eslint-plugin-react": "^7.30.0",
+        "eslint-plugin-react-hooks": "^4.5.0",
+        "eslint-plugin-sort-destructure-keys": "^1.4.0",
+        "jest": "^28.1.0",
+        "lodash.throttle": "^4.1.1",
+        "react": "^17.0.2",
+        "sass": "^1.52.1",
+        "version-bump-prompt": "^6.1.0",
+        "webpack": "^5.76.0",
+        "webpack-cli": "^4.10.0",
+        "webpack-dev-server": "^4.9.2"
+    }
+}
